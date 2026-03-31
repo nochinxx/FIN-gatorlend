@@ -1,0 +1,15 @@
+{
+  "name": "fin-gatorlend",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "dev:web": "pnpm --filter @gatorlend/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm --filter @gatorlend/web lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

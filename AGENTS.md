@@ -29,3 +29,11 @@ XRPL campus tokenization platform for unique campus assets using XLS-20 NFTs, Ne
 
 ## Current first asset type
 - Textbooks
+
+## Scaffold constraints
+- Keep the repository Codespaces-friendly.
+- Keep the repository public-safe and testnet-only.
+- Use `pnpm` workspaces with `apps/web`, `packages/core`, and `packages/xrpl`.
+- Use Next.js App Router with TypeScript and `src/`.
+- Use `xrpl`, `@supabase/supabase-js`, and `zod`.
+- Keep Supabase local workflows Docker-free unless explicitly requested later.
