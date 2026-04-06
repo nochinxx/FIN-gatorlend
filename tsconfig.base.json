@@ -4,6 +4,11 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@gatorlend/core": ["packages/core/src/index.ts"],
+      "@gatorlend/xrpl": ["packages/xrpl/src/index.ts"]
+    },
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

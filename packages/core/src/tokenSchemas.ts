@@ -16,8 +16,8 @@ const baseAssetSchema = z.object({
   image_url: z.string().url().optional().or(z.literal("")),
   xrpl_token_id: z.string().min(1),
   verification_status: verificationStatusSchema,
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional()
+  created_at: z.string().optional(),
+updated_at: z.string().optional()
 });
 
 export const textbookMetadataSchema = z.object({
@@ -69,8 +69,8 @@ export const assetTableRowSchema = z.object({
   xrpl_token_id: z.string().min(1),
   verification_status: verificationStatusSchema,
   metadata: z.record(z.string(), z.unknown()),
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional()
+  created_at: z.string().optional(),
+updated_at: z.string().optional()
 });
 
 export type AssetType = z.infer<typeof assetTypeSchema>;

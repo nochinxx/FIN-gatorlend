@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const checklist = [
   "Connect Crossmark through the wallet adapter boundary",
   "Validate Supabase textbook metadata against XRPL XLS-20 state before rendering detail views",
@@ -44,6 +46,27 @@ export default function HomePage() {
           The first MVP workflow targets textbooks, with Crossmark as the first wallet adapter and
           Supabase used only after metadata integrity checks against XRPL state.
         </p>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
+          <Link href="/textbooks/new" style={{ color: "#17331d", fontWeight: 700 }}>
+            Create textbook asset
+          </Link>
+          <Link
+            href="/textbooks/new"
+            style={{
+              padding: "0.7rem 1rem",
+              borderRadius: 999,
+              background: "#17331d",
+              color: "#fffaf0",
+              fontWeight: 700,
+              textDecoration: "none"
+            }}
+          >
+            Create Textbook (Dev)
+          </Link>
+          <Link href="/catalog" style={{ color: "#17331d", fontWeight: 700 }}>
+            View textbook catalog
+          </Link>
+        </div>
         <ul style={{ margin: "2rem 0 0", paddingLeft: "1.25rem", lineHeight: 1.8 }}>
           {checklist.map((item) => (
             <li key={item}>{item}</li>

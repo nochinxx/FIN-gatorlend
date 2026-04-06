@@ -41,3 +41,11 @@ XRPL campus tokenization platform scaffold for unique campus assets using XLS-20
 ## Current State
 
 This is an initial scaffold. The shared asset model now supports textbooks, goggles, and lab coats through a typed metadata union, while minting, transfer execution, authenticated Supabase access, and wallet SDK integration remain TODOs.
+
+## Current Vertical Slice
+
+- Textbook create form at `/textbooks/new`
+- Textbook catalog at `/catalog`
+- Textbook detail shell at `/assets/[id]`
+- Supabase writes and reads use shared fields plus `metadata`
+- Textbook detail performs a placeholder XRPL reconciliation check before showing status
