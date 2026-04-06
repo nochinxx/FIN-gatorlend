@@ -32,6 +32,7 @@
 
 - Build a wallet-connected platform, not a new wallet.
 - Use XLS-20 NFTs for unique campus assets.
-- The first minting workflow is textbooks.
+- Support these MVP asset categories in shared schemas and DB assumptions: `textbook`, `goggles`, `lab_coat`.
+- The first minting and UI workflow is textbooks.
 - Keep the first pass minimal, typed, and testnet-only.
 - Add TODOs instead of inventing unsafe or privileged behavior.

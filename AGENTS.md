@@ -27,7 +27,12 @@ XRPL campus tokenization platform for unique campus assets using XLS-20 NFTs, Ne
 ## Current token standard
 - XLS-20 NFTs for unique assets
 
-## Current first asset type
+## Current MVP asset categories
+- Textbooks
+- Goggles
+- Lab coats
+
+## Current first workflow
 - Textbooks
 
 ## Scaffold constraints

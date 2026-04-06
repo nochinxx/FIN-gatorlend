@@ -9,7 +9,8 @@ XRPL campus tokenization platform scaffold for unique campus assets using XLS-20
 - Shared validation schemas in `packages/core`
 - XRPL client and wallet adapters in `packages/xrpl`
 - Supabase migration placeholder with RLS-first notes
-- First asset workflow: textbooks
+- Shared asset model for `textbook`, `goggles`, and `lab_coat`
+- First UI and minting workflow remains textbooks
 
 ## Workspace Layout
 
@@ -39,4 +40,4 @@ XRPL campus tokenization platform scaffold for unique campus assets using XLS-20
 
 ## Current State
 
-This is an initial scaffold. Minting, transfer execution, authenticated Supabase access, and wallet SDK integration are intentionally left as TODOs.
+This is an initial scaffold. The shared asset model now supports textbooks, goggles, and lab coats through a typed metadata union, while minting, transfer execution, authenticated Supabase access, and wallet SDK integration remain TODOs.
