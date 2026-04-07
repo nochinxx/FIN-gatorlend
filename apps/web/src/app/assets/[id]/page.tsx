@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getTextbookAssetById, reconcileTextbookAsset } from "@/lib/assets/textbooks";
 import { hasSupabaseServerConfig } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 type AssetDetailPageProps = {
   params: Promise<{
     id: string;

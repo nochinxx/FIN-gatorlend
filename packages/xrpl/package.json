@@ -13,6 +13,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@crossmarkio/sdk": "^0.4.0",
     "xrpl": "^4.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1"
   }
 }

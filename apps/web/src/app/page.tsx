@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { WalletConnectionPanel } from "@/components/WalletConnectionPanel";
+
 const checklist = [
   "Connect Crossmark through the wallet adapter boundary",
   "Validate Supabase textbook metadata against XRPL XLS-20 state before rendering detail views",
@@ -72,6 +74,7 @@ export default function HomePage() {
             <li key={item}>{item}</li>
           ))}
         </ul>
+        <WalletConnectionPanel />
       </section>
     </main>
   );

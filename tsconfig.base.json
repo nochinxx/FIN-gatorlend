@@ -7,7 +7,8 @@
     "baseUrl": ".",
     "paths": {
       "@gatorlend/core": ["packages/core/src/index.ts"],
-      "@gatorlend/xrpl": ["packages/xrpl/src/index.ts"]
+      "@gatorlend/xrpl": ["packages/xrpl/src/index.ts"],
+      "@gatorlend/xrpl/server": ["packages/xrpl/src/server.ts"]
     },
     "strict": true,
     "skipLibCheck": true,

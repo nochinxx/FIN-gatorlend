@@ -3,9 +3,11 @@ import Link from "next/link";
 import { listTextbookAssets } from "@/lib/assets/textbooks";
 import { hasSupabaseServerConfig } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function CatalogPage() {
   const hasConfig = hasSupabaseServerConfig();
-  const assets = hasConfig ? await listTextbookAssets() : [];
+  const assets = hasConfig ? await listTextbookAssets().catch(() => []) : [];
 
   return (
     <main style={{ maxWidth: 1080, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>

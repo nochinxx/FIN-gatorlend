@@ -10,7 +10,7 @@ import {
 import {
   fetchRegisteredTextbookStatePlaceholder,
   registerTextbookAssetPlaceholder
-} from "@gatorlend/xrpl";
+} from "@gatorlend/xrpl/server";
 
 import { createSupabaseServerClient } from "../supabase/server";
 
