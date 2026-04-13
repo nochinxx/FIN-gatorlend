@@ -40,12 +40,13 @@ XRPL campus tokenization platform scaffold for unique campus assets using XLS-20
 
 ## Current State
 
-This is an initial scaffold. The shared asset model now supports textbooks, goggles, and lab coats through a typed metadata union, while minting, transfer execution, authenticated Supabase access, and wallet SDK integration remain TODOs.
+This repo now includes a real textbook XRPL testnet mint path. The shared asset model supports textbooks, goggles, and lab coats through a typed metadata union, while textbook minting happens through Crossmark and the server verifies the resulting XLS-20 NFT before persisting the Supabase record. Transfer execution, richer authenticated Supabase access, and additional asset flows still remain TODOs.
 
 ## Current Vertical Slice
 
-- Textbook create form at `/textbooks/new`
+- Textbook mint form at `/textbooks/new`
 - Textbook catalog at `/catalog`
 - Textbook detail shell at `/assets/[id]`
 - Supabase writes and reads use shared fields plus `metadata`
-- Textbook detail performs a placeholder XRPL reconciliation check before showing status
+- Textbook creation prepares an `NFTokenMint`, signs it in Crossmark, then verifies the validated XRPL transaction before insert
+- Textbook detail validates the stored record against the live XRPL NFT commitment before showing status

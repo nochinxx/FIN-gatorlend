@@ -11,12 +11,12 @@ export default function NewTextbookPage() {
             Textbook registration
           </p>
           <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>
-            Create a textbook asset record
+            Mint a textbook asset on XRPL
           </h1>
           <p style={{ maxWidth: 720, lineHeight: 1.6 }}>
-            This first vertical slice writes only textbook assets. The payload is validated with the
-            shared multi-asset schema before insert, then persisted as `asset_type = "textbook"`
-            plus textbook metadata.
+            This textbook flow now mints an XLS-20 NFT from the connected Crossmark wallet first.
+            After XRPL testnet confirms the mint, the server verifies the token commitment and then
+            persists the matching Supabase asset record.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>

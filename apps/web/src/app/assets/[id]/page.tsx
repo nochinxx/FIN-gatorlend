@@ -31,7 +31,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
     notFound();
   }
 
-  const { xrplState, hasMismatch } = await reconcileTextbookAsset(asset);
+  const { xrplState, hasMismatch, expectedMetadataHash, expectedMetadataUri } = await reconcileTextbookAsset(asset);
 
   return (
     <main style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>
@@ -44,8 +44,8 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
             {asset.metadata.title}
           </h1>
           <p style={{ maxWidth: 720, lineHeight: 1.6 }}>
-            This detail shell compares the Supabase record against XRPL state before presenting the
-            final asset status.
+            This detail view checks the recorded textbook metadata commitment against live XRPL
+            state before presenting the asset as trustworthy.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
@@ -70,12 +70,13 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
         <h2 style={{ marginTop: 0 }}>Integrity status</h2>
         {hasMismatch ? (
           <p style={{ color: "#8b2414", fontWeight: 700 }}>
-            Integrity warning: Supabase metadata does not match the XRPL state placeholder. Do not
+            Integrity warning: the Supabase record does not match live XRPL textbook state. Do not
             treat this asset as verified until the mismatch is resolved.
           </p>
         ) : (
           <p style={{ color: "#17331d", fontWeight: 700 }}>
-            Integrity check passed. Current verification status: {asset.verification_status}.
+            Integrity check passed against the live XRPL NFT. Current verification status:{" "}
+            {asset.verification_status}.
           </p>
         )}
       </section>
@@ -114,13 +115,14 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           }}
         >
           <h2 style={{ marginTop: 0 }}>XRPL comparison state</h2>
+          <p>Exists on recorded owner wallet: {xrplState.exists ? "Yes" : "No"}</p>
           <p>Asset type: {xrplState.asset_type}</p>
-          <p>Owner wallet: {xrplState.owner_wallet}</p>
+          <p>Recorded owner wallet: {xrplState.owner_wallet}</p>
           <p>XRPL token ID: {xrplState.xrpl_token_id}</p>
-          <p>ISBN: {xrplState.metadata.isbn}</p>
-          <p>Course code: {xrplState.metadata.course_code}</p>
-          <p>Edition: {xrplState.metadata.edition}</p>
-          <p>Condition: {xrplState.metadata.condition}</p>
+          <p>Expected metadata hash: {expectedMetadataHash}</p>
+          <p>XRPL metadata hash: {xrplState.metadata_hash ?? "Unavailable"}</p>
+          <p>Expected commitment URI: {expectedMetadataUri}</p>
+          <p>XRPL commitment URI: {xrplState.metadata_uri ?? "Unavailable"}</p>
         </article>
       </section>
     </main>
