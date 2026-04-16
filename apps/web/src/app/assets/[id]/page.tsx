@@ -54,7 +54,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
             Catalog
           </Link>
           <Link href="/textbooks/new" style={{ color: "#17331d" }}>
-            Create textbook
+            Create asset
           </Link>
         </div>
       </div>

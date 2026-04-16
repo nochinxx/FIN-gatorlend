@@ -103,19 +103,16 @@ export function WalletConnectionPanel() {
   return (
     <section
       style={{
-        marginTop: "2rem",
         padding: "1.25rem",
         borderRadius: 18,
-        background: "#fffaf0",
-        border: "1px solid #d9d2be"
+        background: "#ffffff",
+        border: "1px solid #ebebeb"
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <h2 style={{ marginTop: 0, marginBottom: "0.35rem" }}>Wallet</h2>
-          <p style={{ margin: 0, color: "#475447" }}>
-            Crossmark is the first wallet integration target for the web app.
-          </p>
+          <h2 style={{ margin: 0, fontSize: "1rem" }}>Wallet</h2>
+          <p style={{ margin: "0.35rem 0 0", color: "#5c5c5c", lineHeight: 1.5 }}>Crossmark connection status</p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <button
@@ -126,8 +123,8 @@ export function WalletConnectionPanel() {
               padding: "0.7rem 1rem",
               borderRadius: 999,
               border: 0,
-              background: "#17331d",
-              color: "#fffaf0",
+              background: "#111111",
+              color: "#ffffff",
               fontWeight: 700,
               cursor: !state.available || state.status === "connecting" ? "not-allowed" : "pointer"
             }}
@@ -141,9 +138,9 @@ export function WalletConnectionPanel() {
             style={{
               padding: "0.7rem 1rem",
               borderRadius: 999,
-              border: "1px solid #17331d",
-              background: "#fffaf0",
-              color: "#17331d",
+              border: "1px solid #d7d7d7",
+              background: "#ffffff",
+              color: "#111111",
               fontWeight: 700,
               cursor: state.status !== "connected" ? "not-allowed" : "pointer"
             }}
@@ -153,26 +150,51 @@ export function WalletConnectionPanel() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: "0.35rem", marginTop: "1rem" }}>
-        <p style={{ margin: 0 }}>
-          <strong>Availability:</strong> {state.available ? "Crossmark detected" : "Crossmark not detected"}
-        </p>
-        <p style={{ margin: 0 }}>
-          <strong>Status:</strong> {state.status}
-        </p>
-        <p style={{ margin: 0 }}>
-          <strong>Address:</strong> {state.address ?? "Not connected"}
-        </p>
-        <p style={{ margin: 0 }}>
-          <strong>Network:</strong> {formatNetworkDisplay(state.network)}
-        </p>
-        <p style={{ margin: 0 }}>
-          <strong>Eligible for testnet mint:</strong> {state.isOnTestnet ? "Yes" : "No"}
-        </p>
-        {state.error ? (
-          <p style={{ margin: 0, color: "#8b2414" }}>
-            <strong>Error:</strong> {state.error}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: "0.85rem 1rem",
+          marginTop: "1rem"
+        }}
+      >
+        <div>
+          <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Availability
           </p>
+          <p style={{ margin: "0.25rem 0 0" }}>{state.available ? "Crossmark detected" : "Crossmark not detected"}</p>
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Status
+          </p>
+          <p style={{ margin: "0.25rem 0 0" }}>{state.status}</p>
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Address
+          </p>
+          <p style={{ margin: "0.25rem 0 0", wordBreak: "break-all" }}>{state.address ?? "Not connected"}</p>
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Network
+          </p>
+          <p style={{ margin: "0.25rem 0 0" }}>{formatNetworkDisplay(state.network)}</p>
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Testnet mint
+          </p>
+          <p style={{ margin: "0.25rem 0 0" }}>{state.isOnTestnet ? "Enabled" : "Blocked"}</p>
+        </div>
+        {state.error ? (
+          <div>
+            <p style={{ margin: 0, fontSize: 12, color: "#8b2414", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Error
+            </p>
+            <p style={{ margin: "0.25rem 0 0", color: "#8b2414", lineHeight: 1.5 }}>{state.error}</p>
+          </div>
         ) : null}
       </div>
     </section>

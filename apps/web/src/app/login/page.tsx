@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
 
+import { BrandLogo } from "@/components/BrandLogo";
 import { isEmailAllowedForDemo } from "@/lib/auth/allowlist";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
@@ -35,22 +37,47 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const notAuthorized = resolvedSearchParams.error === "not-authorized";
 
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: "5rem 1.5rem" }}>
+    <main
+      style={{
+        minHeight: "calc(100vh - 73px)",
+        display: "grid",
+        placeItems: "center",
+        padding: "3rem 1.5rem"
+      }}
+    >
       <section
         style={{
+          width: "100%",
+          maxWidth: 520,
           padding: "2rem",
           borderRadius: 24,
-          background: "#fffaf0",
-          boxShadow: "0 20px 70px rgba(18, 33, 23, 0.08)"
+          background: "#ffffff",
+          border: "1px solid #ebebeb",
+          boxShadow: "0 10px 40px rgba(17, 17, 17, 0.05)"
         }}
       >
-        <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+          <BrandLogo size="login" priority />
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+          <Image src="/branding/fin-globe-black.png" alt="FIN globe" width={22} height={22} />
+        </div>
+        <p
+          style={{
+            margin: 0,
+            textTransform: "uppercase",
+            letterSpacing: "0.16em",
+            fontSize: 12,
+            textAlign: "center",
+            color: "#666666"
+          }}
+        >
           Demo access
         </p>
-        <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)" }}>
+        <h1 style={{ margin: "0.75rem 0 0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
           Sign in for the protected demo routes
         </h1>
-        <p style={{ lineHeight: 1.6 }}>
+        <p style={{ lineHeight: 1.6, textAlign: "center", color: "#4f4f4f" }}>
           Use an approved team email to receive a Supabase magic link. Protected pages are blocked
           server-side until the session is valid and the email is allowlisted.
         </p>
@@ -63,7 +90,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               borderRadius: 12,
               background: "#ffe7de",
               color: "#7f2413",
-              fontWeight: 600
+              fontWeight: 600,
+              textAlign: "center"
             }}
           >
             Not authorized for demo.

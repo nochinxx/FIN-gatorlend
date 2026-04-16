@@ -10,15 +10,13 @@ export default function NewTextbookPage() {
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12 }}>
-            Textbook registration
+            Asset creation
           </p>
-          <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>
-            Mint a textbook asset on XRPL
-          </h1>
+          <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Create asset</h1>
           <p style={{ maxWidth: 720, lineHeight: 1.6 }}>
-            This textbook flow now mints an XLS-20 NFT from the connected Crossmark wallet first.
-            After XRPL testnet confirms the mint, the server verifies the token commitment and then
-            persists the matching Supabase asset record.
+            The current demo flow mints a textbook-backed XLS-20 NFT from the connected Crossmark
+            wallet first. After XRPL testnet confirms the mint, the server verifies the token
+            commitment and then persists the matching Supabase asset record.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>

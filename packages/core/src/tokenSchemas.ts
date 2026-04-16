@@ -9,11 +9,14 @@ export const verificationStatusSchema = z.enum([
   "hidden"
 ]);
 
+const localAssetImagePathSchema = z.string().regex(/^\/(?:images|branding)\/.+\.(?:png|jpe?g|webp)$/i);
+const assetImageSchema = z.union([z.string().url(), localAssetImagePathSchema, z.literal("")]);
+
 const baseAssetSchema = z.object({
   id: z.string().uuid().optional(),
   asset_type: assetTypeSchema,
   owner_wallet: z.string().min(1),
-  image_url: z.string().url().optional().or(z.literal("")),
+  image_url: assetImageSchema.optional(),
   xrpl_token_id: z.string().min(1),
   verification_status: verificationStatusSchema,
   created_at: z.string().optional(),
@@ -65,7 +68,7 @@ export const assetTableRowSchema = z.object({
   id: z.string().uuid().optional(),
   asset_type: assetTypeSchema,
   owner_wallet: z.string().min(1),
-  image_url: z.string().url().optional().or(z.literal("")),
+  image_url: assetImageSchema.optional(),
   xrpl_token_id: z.string().min(1),
   verification_status: verificationStatusSchema,
   metadata: z.record(z.string(), z.unknown()),

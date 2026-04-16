@@ -45,9 +45,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
+    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem", marginTop: "1.5rem" }}>
       <label style={{ display: "grid", gap: "0.35rem" }}>
-        <span style={{ fontWeight: 600 }}>Approved email</span>
+        <span style={{ fontWeight: 600, color: "#222222" }}>Approved email</span>
         <input
           type="email"
           required
@@ -57,20 +57,37 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           style={{
             padding: "0.9rem 1rem",
             borderRadius: 12,
-            border: "1px solid #b4b09c",
-            background: "#fffdf6"
+            border: "1px solid #d7d7d7",
+            background: "#ffffff",
+            color: "#111111"
           }}
         />
       </label>
 
       {error ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#ffe7de", color: "#7f2413" }}>
+        <p
+          style={{
+            margin: 0,
+            padding: "0.85rem 1rem",
+            borderRadius: 12,
+            background: "#fff3ef",
+            color: "#7f2413"
+          }}
+        >
           {error}
         </p>
       ) : null}
 
       {message ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#e9f4e3", color: "#17331d" }}>
+        <p
+          style={{
+            margin: 0,
+            padding: "0.85rem 1rem",
+            borderRadius: 12,
+            background: "#f5f5f5",
+            color: "#111111"
+          }}
+        >
           {message}
         </p>
       ) : null}
@@ -82,8 +99,8 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           padding: "0.9rem 1.2rem",
           borderRadius: 12,
           border: 0,
-          background: isSubmitting ? "#899688" : "#17331d",
-          color: "#fffaf0",
+          background: isSubmitting ? "#8f8f8f" : "#111111",
+          color: "#ffffff",
           fontWeight: 700,
           cursor: isSubmitting ? "not-allowed" : "pointer"
         }}
