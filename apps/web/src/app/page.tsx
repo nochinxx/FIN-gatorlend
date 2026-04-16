@@ -3,8 +3,8 @@ import Link from "next/link";
 import { WalletConnectionPanel } from "@/components/WalletConnectionPanel";
 
 const checklist = [
-  "Connect Crossmark through the wallet adapter boundary",
-  "Validate Supabase textbook metadata against XRPL XLS-20 state before rendering detail views",
+  "Mint textbook NFTs through Crossmark behind the wallet adapter boundary",
+  "Validate Supabase textbook metadata against live XRPL XLS-20 state before rendering detail views",
   "Keep issuer and privileged XRPL flows out of client code",
   "Apply RLS policies before exposing public data"
 ];
@@ -45,8 +45,8 @@ export default function HomePage() {
         </h1>
         <p style={{ maxWidth: 680, fontSize: "1.1rem", lineHeight: 1.6 }}>
           This initial web app is wired for a pnpm workspace with shared XRPL and schema packages.
-          The first MVP workflow targets textbooks, with Crossmark as the first wallet adapter and
-          Supabase used only after metadata integrity checks against XRPL state.
+          The first MVP workflow now mints textbook NFTs from Crossmark on XRPL testnet, then
+          stores Supabase records only after the chain state is verified.
         </p>
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
           <Link href="/textbooks/new" style={{ color: "#17331d", fontWeight: 700 }}>

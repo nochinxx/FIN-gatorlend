@@ -8,9 +8,11 @@ import {
   type TextbookAsset
 } from "@gatorlend/core";
 import {
-  fetchRegisteredTextbookStatePlaceholder,
-  registerTextbookAssetPlaceholder
+  doesTextbookMetadataMatchChain,
+  fetchRegisteredTextbookState,
+  finalizeTextbookAssetRegistration
 } from "@gatorlend/xrpl/server";
+import { z } from "zod";
 
 import { createSupabaseServerClient } from "../supabase/server";
 
@@ -25,17 +27,22 @@ const createTextbookInputSchema = textbookAssetSchema
   .extend({
     metadata: textbookMetadataSchema
   });
+const finalizeTextbookMintInputSchema = createTextbookInputSchema.extend({
+  xrpl_transaction_hash: z.string().min(1)
+});
 
 export type CreateTextbookInput = typeof createTextbookInputSchema._type;
+export type FinalizeTextbookMintInput = z.infer<typeof finalizeTextbookMintInputSchema>;
 
 export async function createTextbookAsset(
   rawInput: unknown
 ): Promise<{ asset: TextbookAsset; insertPayload: TextbookAsset }> {
-  const input = createTextbookInputSchema.parse(rawInput);
-  const registration = await registerTextbookAssetPlaceholder({
+  const input = finalizeTextbookMintInputSchema.parse(rawInput);
+  const registration = await finalizeTextbookAssetRegistration({
     owner_wallet: input.owner_wallet,
     image_url: input.image_url,
-    metadata: input.metadata
+    metadata: input.metadata,
+    transaction_hash: input.xrpl_transaction_hash
   });
 
   const insertPayload = textbookAssetSchema.parse({
@@ -120,17 +127,24 @@ export async function getTextbookAssetById(id: string): Promise<TextbookAsset | 
 }
 
 export async function reconcileTextbookAsset(asset: TextbookAsset): Promise<{
-  xrplState: Awaited<ReturnType<typeof fetchRegisteredTextbookStatePlaceholder>>;
+  xrplState: Awaited<ReturnType<typeof fetchRegisteredTextbookState>>;
   hasMismatch: boolean;
+  expectedMetadataHash: string;
+  expectedMetadataUri: string;
 }> {
-  const xrplState = await fetchRegisteredTextbookStatePlaceholder(asset);
+  const xrplState = await fetchRegisteredTextbookState(asset);
+  const { expectedMetadataHash, expectedMetadataUri } = doesTextbookMetadataMatchChain(asset);
   const hasMismatch =
+    !xrplState.exists ||
     asset.owner_wallet !== xrplState.owner_wallet ||
     asset.xrpl_token_id !== xrplState.xrpl_token_id ||
-    JSON.stringify(asset.metadata) !== JSON.stringify(xrplState.metadata);
+    xrplState.metadata_hash !== expectedMetadataHash ||
+    xrplState.metadata_uri !== expectedMetadataUri;
 
   return {
     xrplState,
-    hasMismatch
+    hasMismatch,
+    expectedMetadataHash,
+    expectedMetadataUri
   };
 }

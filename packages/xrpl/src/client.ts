@@ -4,7 +4,15 @@ export const DEFAULT_XRPL_TESTNET_URL = "wss://s.altnet.rippletest.net:51233";
 
 export type XrplNetwork = "testnet";
 
-export function createXrplClient(url = DEFAULT_XRPL_TESTNET_URL): Client {
+export function resolveXrplTestnetUrl(): string {
+  return (
+    process.env.XRPL_TESTNET_RPC_URL ??
+    process.env.NEXT_PUBLIC_XRPL_TESTNET_RPC_URL ??
+    DEFAULT_XRPL_TESTNET_URL
+  );
+}
+
+export function createXrplClient(url = resolveXrplTestnetUrl()): Client {
   return new Client(url);
 }
 
