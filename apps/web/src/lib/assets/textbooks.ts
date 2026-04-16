@@ -52,13 +52,57 @@ export async function createTextbookAsset(
   });
 
   const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
+  const { data: existingAsset, error: existingAssetError } = await supabase
     .from("assets")
-    .insert(insertPayload)
     .select("*")
-    .single();
+    .eq("xrpl_token_id", registration.xrpl_token_id)
+    .maybeSingle();
+
+  if (existingAssetError) {
+    throw new Error(`Failed to check existing textbook asset registration: ${existingAssetError.message}`);
+  }
+
+  if (existingAsset) {
+    const parsedExistingRow = assetTableRowSchema.parse(existingAsset);
+    const existingParsedAsset = assetRecordSchema.parse(parsedExistingRow);
+
+    if (existingParsedAsset.asset_type !== "textbook") {
+      throw new Error("Expected a textbook asset for an existing XRPL token registration.");
+    }
+
+    return {
+      asset: existingParsedAsset,
+      insertPayload
+    };
+  }
+
+  const { data, error } = await supabase.from("assets").insert(insertPayload).select("*").single();
 
   if (error) {
+    const { data: retriedAsset, error: retriedAssetError } = await supabase
+      .from("assets")
+      .select("*")
+      .eq("xrpl_token_id", registration.xrpl_token_id)
+      .maybeSingle();
+
+    if (retriedAssetError) {
+      throw new Error(`Failed to create textbook asset: ${error.message}`);
+    }
+
+    if (retriedAsset) {
+      const parsedRetriedRow = assetTableRowSchema.parse(retriedAsset);
+      const retriedParsedAsset = assetRecordSchema.parse(parsedRetriedRow);
+
+      if (retriedParsedAsset.asset_type !== "textbook") {
+        throw new Error("Expected a textbook asset after retrying XRPL registration lookup.");
+      }
+
+      return {
+        asset: retriedParsedAsset,
+        insertPayload
+      };
+    }
+
     throw new Error(`Failed to create textbook asset: ${error.message}`);
   }
 

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { createXrplClient } from "./client";
+import { requestXrplJsonRpc } from "./client";
 
 const TEXTBOOK_URI_PREFIX = "gatorlend:textbook:";
 const NFT_PAGE_LIMIT = 400;
@@ -64,6 +64,7 @@ type XrplTransactionState = {
   transactionType: string | null;
   transactionResult: string | null;
   validated: boolean;
+  mintedTokenId: string | null;
 };
 
 type AccountNftRecord = {
@@ -88,6 +89,11 @@ function getBoolean(record: UnknownRecord, key: string): boolean | null {
 function getArray(record: UnknownRecord, key: string): unknown[] {
   const value = record[key];
   return Array.isArray(value) ? value : [];
+}
+
+function getRecord(record: UnknownRecord, key: string): UnknownRecord | null {
+  const value = record[key];
+  return isRecord(value) ? value : null;
 }
 
 function createTextbookMetadataPayload(draft: TextbookMintDraft): string {
@@ -137,43 +143,128 @@ async function sleep(ms: number): Promise<void> {
   });
 }
 
-async function fetchValidatedTransactionState(transactionHash: string): Promise<XrplTransactionState> {
-  const client = createXrplClient();
+function extractMintedNfTokenIdFromMeta(meta: UnknownRecord, expectedUriHex: string | null): string | null {
+  const affectedNodes = getArray(meta, "AffectedNodes");
 
-  await client.connect();
+  for (const node of affectedNodes) {
+    if (!isRecord(node)) {
+      continue;
+    }
 
-  try {
-    for (let attempt = 0; attempt < TX_VALIDATION_RETRY_COUNT; attempt += 1) {
-      try {
-        const response = await client.request({
-          command: "tx",
-          transaction: transactionHash
-        });
-        const result = isRecord(response.result) ? response.result : null;
-        const meta = result && isRecord(result.meta) ? result.meta : null;
-        const validated = result ? getBoolean(result, "validated") === true : false;
-        const transactionState: XrplTransactionState = {
-          account: result ? getString(result, "Account") : null,
-          hash: result ? getString(result, "hash") : null,
-          uriHex: result ? getString(result, "URI") : null,
-          transactionType: result ? getString(result, "TransactionType") : null,
-          transactionResult: meta ? getString(meta, "TransactionResult") : null,
-          validated
-        };
+    const affectedNode =
+      getRecord(node, "CreatedNode") ?? getRecord(node, "ModifiedNode") ?? getRecord(node, "DeletedNode");
 
-        if (transactionState.validated) {
-          return transactionState;
-        }
-      } catch (error) {
-        if (attempt === TX_VALIDATION_RETRY_COUNT - 1) {
-          throw error;
-        }
+    if (!affectedNode || getString(affectedNode, "LedgerEntryType") !== "NFTokenPage") {
+      continue;
+    }
+
+    const finalFields = getRecord(affectedNode, "FinalFields");
+    const newFields = getRecord(affectedNode, "NewFields");
+    const previousFields = getRecord(affectedNode, "PreviousFields");
+
+    const nextTokens = getArray(finalFields ?? newFields ?? {}, "NFTokens");
+    const previousTokens = getArray(previousFields ?? {}, "NFTokens");
+    const previousTokenIds = new Set(
+      previousTokens
+        .map((entry) => {
+          if (!isRecord(entry)) {
+            return null;
+          }
+          const nft = getRecord(entry, "NFToken");
+          return nft ? getString(nft, "NFTokenID") : null;
+        })
+        .filter((value): value is string => Boolean(value))
+        .map(normalizeHex)
+    );
+
+    const addedEntries = nextTokens.filter((entry) => {
+      if (!isRecord(entry)) {
+        return false;
       }
 
-      await sleep(TX_VALIDATION_RETRY_MS);
+      const nft = getRecord(entry, "NFToken");
+      const tokenId = nft ? getString(nft, "NFTokenID") : null;
+
+      if (!tokenId) {
+        return false;
+      }
+
+      return !previousTokenIds.has(normalizeHex(tokenId));
+    });
+
+    for (const entry of addedEntries) {
+      if (!isRecord(entry)) {
+        continue;
+      }
+
+      const nft = getRecord(entry, "NFToken");
+
+      if (!nft) {
+        continue;
+      }
+
+      const tokenId = getString(nft, "NFTokenID");
+      const uriHex = getString(nft, "URI");
+
+      if (!tokenId) {
+        continue;
+      }
+
+      if (!expectedUriHex || (uriHex && normalizeHex(uriHex) === expectedUriHex)) {
+        return normalizeHex(tokenId);
+      }
     }
-  } finally {
-    await client.disconnect();
+
+    if (addedEntries.length === 1) {
+      const entry = addedEntries[0];
+
+      if (isRecord(entry)) {
+        const nft = getRecord(entry, "NFToken");
+        const tokenId = nft ? getString(nft, "NFTokenID") : null;
+
+        if (tokenId) {
+          return normalizeHex(tokenId);
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+async function fetchValidatedTransactionState(
+  transactionHash: string,
+  expectedUriHex: string | null
+): Promise<XrplTransactionState> {
+  for (let attempt = 0; attempt < TX_VALIDATION_RETRY_COUNT; attempt += 1) {
+    try {
+      const response = await requestXrplJsonRpc<{ result?: UnknownRecord }>({
+        command: "tx",
+        transaction: transactionHash
+      });
+      const result = response.result && isRecord(response.result) ? response.result : null;
+      const meta = result && isRecord(result.meta) ? result.meta : null;
+      const validated = result ? getBoolean(result, "validated") === true : false;
+      const transactionState: XrplTransactionState = {
+        account: result ? getString(result, "Account") : null,
+        hash: result ? getString(result, "hash") : null,
+        uriHex: result ? getString(result, "URI") : null,
+        transactionType: result ? getString(result, "TransactionType") : null,
+        transactionResult: meta ? getString(meta, "TransactionResult") : null,
+        validated,
+        mintedTokenId: meta ? extractMintedNfTokenIdFromMeta(meta, expectedUriHex) : null
+      };
+
+      if (transactionState.validated) {
+        return transactionState;
+      }
+    } catch (error) {
+      if (attempt === TX_VALIDATION_RETRY_COUNT - 1) {
+        throw error;
+      }
+    }
+
+    await sleep(TX_VALIDATION_RETRY_MS);
   }
 
   throw new Error("XRPL mint transaction was not validated before the timeout.");
@@ -184,56 +275,49 @@ async function findAccountNftByTokenIdOrUri(input: {
   expectedTokenId?: string;
   expectedUriHex?: string;
 }): Promise<AccountNftRecord | null> {
-  const client = createXrplClient();
   const expectedTokenId = input.expectedTokenId ? normalizeHex(input.expectedTokenId) : null;
   const expectedUriHex = input.expectedUriHex ? normalizeHex(input.expectedUriHex) : null;
 
-  await client.connect();
+  let marker: unknown = undefined;
 
-  try {
-    let marker: unknown = undefined;
+  while (true) {
+    const response = await requestXrplJsonRpc<{ result?: UnknownRecord }>({
+      command: "account_nfts",
+      account: input.account,
+      limit: NFT_PAGE_LIMIT,
+      marker
+    });
+    const result = response.result && isRecord(response.result) ? response.result : null;
+    const accountNfts = result ? getArray(result, "account_nfts") : [];
 
-    while (true) {
-      const response = await client.request({
-        command: "account_nfts",
-        account: input.account,
-        limit: NFT_PAGE_LIMIT,
-        marker
-      });
-      const result = isRecord(response.result) ? response.result : null;
-      const accountNfts = result ? getArray(result, "account_nfts") : [];
-
-      for (const candidate of accountNfts) {
-        if (!isRecord(candidate)) {
-          continue;
-        }
-
-        const nftTokenId = getString(candidate, "NFTokenID");
-        const uriHex = getString(candidate, "URI");
-
-        if (!nftTokenId) {
-          continue;
-        }
-
-        const tokenMatches = expectedTokenId ? normalizeHex(nftTokenId) === expectedTokenId : false;
-        const uriMatches = expectedUriHex && uriHex ? normalizeHex(uriHex) === expectedUriHex : false;
-
-        if (tokenMatches || uriMatches) {
-          return {
-            NFTokenID: normalizeHex(nftTokenId),
-            URI: uriHex ? normalizeHex(uriHex) : null
-          };
-        }
+    for (const candidate of accountNfts) {
+      if (!isRecord(candidate)) {
+        continue;
       }
 
-      marker = result?.marker;
+      const nftTokenId = getString(candidate, "NFTokenID");
+      const uriHex = getString(candidate, "URI");
 
-      if (!marker) {
-        return null;
+      if (!nftTokenId) {
+        continue;
+      }
+
+      const tokenMatches = expectedTokenId ? normalizeHex(nftTokenId) === expectedTokenId : false;
+      const uriMatches = expectedUriHex && uriHex ? normalizeHex(uriHex) === expectedUriHex : false;
+
+      if (tokenMatches || uriMatches) {
+        return {
+          NFTokenID: normalizeHex(nftTokenId),
+          URI: uriHex ? normalizeHex(uriHex) : null
+        };
       }
     }
-  } finally {
-    await client.disconnect();
+
+    marker = result?.marker;
+
+    if (!marker) {
+      return null;
+    }
   }
 }
 
@@ -261,7 +345,7 @@ export async function finalizeTextbookAssetRegistration(
   const expectedTransaction = createTextbookMintTransaction(input);
   const expectedUriHex = normalizeHex(expectedTransaction.URI);
   const { metadataHash, metadataUri } = createCommittedMetadataUri(input);
-  const transactionState = await fetchValidatedTransactionState(transactionHash);
+  const transactionState = await fetchValidatedTransactionState(transactionHash, expectedUriHex);
 
   if (!transactionState.validated) {
     throw new Error("XRPL mint transaction is not validated yet.");
@@ -285,19 +369,23 @@ export async function finalizeTextbookAssetRegistration(
     throw new Error("XRPL mint transaction URI does not match the expected textbook metadata commitment.");
   }
 
+  if (!transactionState.mintedTokenId) {
+    throw new Error("Could not extract the minted NFTokenID from the validated XRPL transaction metadata.");
+  }
+
   const nftRecord = await findAccountNftByTokenIdOrUri({
     account: input.owner_wallet,
-    expectedUriHex
+    expectedTokenId: transactionState.mintedTokenId
   });
 
   if (!nftRecord) {
-    throw new Error("Minted XRPL NFT was not found on the owner account after validation.");
+    throw new Error("Minted XRPL NFT could not be confirmed on the owner account after validation.");
   }
 
   return {
     asset_type: "textbook",
     owner_wallet: input.owner_wallet,
-    xrpl_token_id: nftRecord.NFTokenID,
+    xrpl_token_id: transactionState.mintedTokenId,
     verification_status: "verified",
     transaction_hash: transactionState.hash ?? transactionHash,
     metadata_hash: metadataHash,

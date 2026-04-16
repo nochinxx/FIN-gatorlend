@@ -120,6 +120,7 @@ export function TextbookForm() {
   const router = useRouter();
   const [walletState, setWalletState] = useState<WalletPanelState>(initialWalletState);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pendingRegistrationHash, setPendingRegistrationHash] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
   const mintRequirementMessage = getWalletRequirementMessage(walletState);
@@ -236,25 +237,34 @@ export function TextbookForm() {
     }
 
     try {
-      const transaction = await prepareTextbookMintAction(parsedDraft.data);
-      const signedResult = await adapter.signAndSubmitTransaction(transaction);
+      const transactionHash = pendingRegistrationHash
+        ? pendingRegistrationHash
+        : await (async () => {
+            const transaction = await prepareTextbookMintAction(parsedDraft.data);
+            const signedResult = await adapter.signAndSubmitTransaction(transaction);
 
-      if (!signedResult.hash) {
-        setSubmitError("Crossmark did not return a transaction hash for the mint.");
-        setIsSubmitting(false);
-        return;
-      }
+            if (!signedResult.hash) {
+              throw new Error("Crossmark did not return a transaction hash for the mint.");
+            }
+
+            return signedResult.hash;
+          })();
 
       const result: FinalizeTextbookMintActionResult = await finalizeTextbookMintAction({
         ...parsedDraft.data,
-        xrpl_transaction_hash: signedResult.hash
+        xrpl_transaction_hash: transactionHash
       });
 
       if (!result.ok) {
-        setSubmitError(result.error);
+        setPendingRegistrationHash(transactionHash);
+        setSubmitError(
+          `${result.error} Mint may already be on-chain. Use the same form state and try finalization again. Transaction hash: ${transactionHash}`
+        );
         setIsSubmitting(false);
         return;
       }
+
+      setPendingRegistrationHash(null);
 
       startTransition(() => {
         router.push(`/assets/${result.assetId}`);
@@ -366,6 +376,21 @@ export function TextbookForm() {
           }}
         >
           {submitError}
+        </p>
+      ) : null}
+
+      {pendingRegistrationHash ? (
+        <p
+          style={{
+            margin: 0,
+            padding: "0.85rem 1rem",
+            borderRadius: 12,
+            background: "#fff1d6",
+            color: "#6b4a00"
+          }}
+        >
+          A mint transaction was already signed and submitted. Submitting again will retry registration
+          only with transaction hash {pendingRegistrationHash}.
         </p>
       ) : null}
 
