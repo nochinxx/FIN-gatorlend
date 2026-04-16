@@ -2,14 +2,10 @@ import "server-only";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl =
-  process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-
-const supabaseAnonKey =
-  process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+import { getSupabaseAnonKey, getSupabaseUrl, hasSupabaseConfig } from "./config";
 
 export function hasSupabaseServerConfig(): boolean {
-  return Boolean(supabaseUrl && supabaseAnonKey);
+  return hasSupabaseConfig();
 }
 
 export function createSupabaseServerClient(): SupabaseClient {
@@ -19,7 +15,7 @@ export function createSupabaseServerClient(): SupabaseClient {
     );
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
     auth: {
       persistSession: false,
       autoRefreshToken: false

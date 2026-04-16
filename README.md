@@ -58,6 +58,29 @@ Deployment caveats:
 - The server-side XRPL validation/finalization path uses JSON-RPC HTTP requests, which is compatible with Vercel serverless execution. It does not depend on maintaining a websocket connection on the server.
 - The catalog and detail pages are intentionally dynamic because they depend on live Supabase and XRPL-backed state.
 
+## Demo Auth
+
+The deployed demo can be restricted with Supabase Auth email magic links plus a hardcoded allowlist in
+[`apps/web/src/lib/auth/allowlist.ts`](/Users/mariojillesca/Code/FIN-gatorlend/apps/web/src/lib/auth/allowlist.ts).
+
+Protected routes:
+
+- `/catalog`
+- `/textbooks/new`
+- `/assets/[id]`
+
+Supabase dashboard configuration for magic links:
+
+- Site URL:
+  `https://YOUR_VERCEL_DOMAIN`
+- Redirect URLs:
+  `http://localhost:3000/auth/callback`
+  `https://YOUR_VERCEL_DOMAIN/auth/callback`
+  `https://YOUR-PREVIEW-DOMAIN.vercel.app/auth/callback`
+
+If you use Vercel preview URLs, add each preview callback URL you expect to use, or use your stable
+demo domain as the primary Site URL.
+
 ## Guardrails
 
 - Never commit seeds, private keys, service role keys, or fake credentials.

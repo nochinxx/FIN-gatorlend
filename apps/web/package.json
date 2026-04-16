@@ -12,6 +12,7 @@
   "dependencies": {
     "@gatorlend/core": "workspace:*",
     "@gatorlend/xrpl": "workspace:*",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.49.4",
     "next": "^15.2.4",
     "react": "^19.0.0",
