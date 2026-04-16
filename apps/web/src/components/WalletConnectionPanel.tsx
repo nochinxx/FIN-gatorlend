@@ -2,23 +2,30 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { CrossmarkAdapter, type WalletAdapterStatus } from "@gatorlend/xrpl";
+import { CrossmarkAdapter, type WalletState } from "@gatorlend/xrpl";
 
-type WalletPanelState = {
-  status: WalletAdapterStatus;
-  address: string | null;
-  network: string | null;
+type WalletPanelState = WalletState & {
   error: string | null;
-  available: boolean;
 };
 
 const initialState: WalletPanelState = {
+  walletType: "crossmark",
   status: "idle",
   address: null,
   network: null,
+  isOnTestnet: false,
   error: null,
   available: false
 };
+
+function formatNetworkDisplay(network: WalletState["network"]): string {
+  if (!network) {
+    return "Unknown until connected";
+  }
+
+  const parts = [network.protocol, network.label, network.type].filter(Boolean);
+  return parts.length > 0 ? parts.join(" / ") : "Unknown network";
+}
 
 export function WalletConnectionPanel() {
   const adapterRef = useRef<CrossmarkAdapter | null>(null);
@@ -28,13 +35,26 @@ export function WalletConnectionPanel() {
     const adapter = new CrossmarkAdapter();
     adapterRef.current = adapter;
 
-    setState({
-      status: adapter.isAvailable() ? "ready" : "idle",
-      address: adapter.getAddress(),
-      network: adapter.getNetwork(),
-      error: null,
-      available: adapter.isAvailable()
+    const unsubscribe = adapter.subscribe((walletState) => {
+      setState((current) => ({
+        ...current,
+        ...walletState
+      }));
     });
+
+    const syncFromAdapter = () => {
+      setState((current) => ({
+        ...current,
+        ...adapter.refreshState()
+      }));
+    };
+
+    window.addEventListener("focus", syncFromAdapter);
+
+    return () => {
+      window.removeEventListener("focus", syncFromAdapter);
+      unsubscribe();
+    };
   }, []);
 
   async function handleConnect() {
@@ -54,19 +74,13 @@ export function WalletConnectionPanel() {
       const wallet = await adapter.connect();
 
       setState({
-        status: adapter.getStatus(),
-        address: wallet.address,
-        network: wallet.network,
+        ...adapter.getState(),
         error: null,
-        available: adapter.isAvailable()
       });
     } catch (error) {
       setState({
-        status: adapter.getStatus(),
-        address: adapter.getAddress(),
-        network: adapter.getNetwork(),
+        ...adapter.getState(),
         error: error instanceof Error ? error.message : "Failed to connect wallet.",
-        available: adapter.isAvailable()
       });
     }
   }
@@ -81,11 +95,8 @@ export function WalletConnectionPanel() {
     await adapter.disconnect();
 
     setState({
-      status: adapter.getStatus(),
-      address: adapter.getAddress(),
-      network: adapter.getNetwork(),
+      ...adapter.getState(),
       error: null,
-      available: adapter.isAvailable()
     });
   }
 
@@ -153,7 +164,10 @@ export function WalletConnectionPanel() {
           <strong>Address:</strong> {state.address ?? "Not connected"}
         </p>
         <p style={{ margin: 0 }}>
-          <strong>Network:</strong> {state.network ?? "Unknown until connected"}
+          <strong>Network:</strong> {formatNetworkDisplay(state.network)}
+        </p>
+        <p style={{ margin: 0 }}>
+          <strong>Eligible for testnet mint:</strong> {state.isOnTestnet ? "Yes" : "No"}
         </p>
         {state.error ? (
           <p style={{ margin: 0, color: "#8b2414" }}>

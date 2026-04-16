@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type FormEvent } from "reac
 import { useRouter } from "next/navigation";
 
 import { textbookMetadataSchema } from "@gatorlend/core";
-import { CrossmarkAdapter, type WalletAdapterStatus } from "@gatorlend/xrpl";
+import { CrossmarkAdapter, type WalletState } from "@gatorlend/xrpl";
 import { z } from "zod";
 
 import {
@@ -20,21 +20,48 @@ const createTextbookDraftSchema = z.object({
   metadata: textbookMetadataSchema
 });
 
-type WalletPanelState = {
-  status: WalletAdapterStatus;
-  address: string | null;
-  network: string | null;
-  available: boolean;
+type WalletPanelState = WalletState & {
   error: string | null;
 };
 
 const initialWalletState: WalletPanelState = {
+  walletType: "crossmark",
   status: "idle",
   address: null,
   network: null,
+  isOnTestnet: false,
   available: false,
   error: null
 };
+
+function getWalletRequirementMessage(walletState: WalletPanelState): string | null {
+  if (!walletState.available) {
+    return "Install Crossmark to mint textbooks from a wallet.";
+  }
+
+  if (!walletState.address) {
+    return "Connect Crossmark before minting a textbook NFT.";
+  }
+
+  if (!walletState.network) {
+    return "Crossmark network could not be detected. Reconnect and confirm XRPL testnet.";
+  }
+
+  if (!walletState.isOnTestnet) {
+    return `Switch Crossmark to XRPL testnet before minting. Current network: ${formatNetworkDisplay(walletState.network)}.`;
+  }
+
+  return null;
+}
+
+function formatNetworkDisplay(network: WalletState["network"]): string {
+  if (!network) {
+    return "Unknown until connected";
+  }
+
+  const parts = [network.protocol, network.label, network.type].filter(Boolean);
+  return parts.length > 0 ? parts.join(" / ") : "Unknown network";
+}
 
 function SubmitButton({ disabled, isSubmitting }: { disabled: boolean; isSubmitting: boolean }) {
   return (
@@ -95,18 +122,36 @@ export function TextbookForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const mintRequirementMessage = getWalletRequirementMessage(walletState);
+  const canMint =
+    walletState.available &&
+    walletState.status === "connected" &&
+    Boolean(walletState.address) &&
+    walletState.isOnTestnet &&
+    mintRequirementMessage === null;
 
   useEffect(() => {
     const adapter = new CrossmarkAdapter();
     adapterRef.current = adapter;
 
-    setWalletState({
-      status: adapter.isAvailable() ? "ready" : "idle",
-      address: adapter.getAddress(),
-      network: adapter.getNetwork(),
-      available: adapter.isAvailable(),
-      error: null
-    });
+    const applyWalletState = (state: WalletState) => {
+      setWalletState((current) => ({
+        ...current,
+        ...state
+      }));
+    };
+
+    const unsubscribe = adapter.subscribe(applyWalletState);
+    const syncFromAdapter = () => {
+      applyWalletState(adapter.refreshState());
+    };
+
+    window.addEventListener("focus", syncFromAdapter);
+
+    return () => {
+      window.removeEventListener("focus", syncFromAdapter);
+      unsubscribe();
+    };
   }, []);
 
   async function handleConnectWallet() {
@@ -123,21 +168,15 @@ export function TextbookForm() {
     }));
 
     try {
-      const wallet = await adapter.connect();
+      await adapter.connect();
 
       setWalletState({
-        status: adapter.getStatus(),
-        address: wallet.address,
-        network: wallet.network,
-        available: adapter.isAvailable(),
+        ...adapter.getState(),
         error: null
       });
     } catch (error) {
       setWalletState({
-        status: adapter.getStatus(),
-        address: adapter.getAddress(),
-        network: adapter.getNetwork(),
-        available: adapter.isAvailable(),
+        ...adapter.getState(),
         error: error instanceof Error ? error.message : "Failed to connect Crossmark."
       });
     }
@@ -156,31 +195,24 @@ export function TextbookForm() {
       return;
     }
 
-    if (!walletState.available) {
-      setSubmitError("Crossmark is not available in this browser.");
+    const currentWalletState = adapter.refreshState();
+    setWalletState((current) => ({
+      ...current,
+      ...currentWalletState
+    }));
+
+    const currentRequirementMessage = getWalletRequirementMessage({
+      ...walletState,
+      ...currentWalletState
+    });
+
+    if (currentRequirementMessage) {
+      setSubmitError(currentRequirementMessage);
       setIsSubmitting(false);
       return;
     }
 
-    let ownerWallet = walletState.address;
-
-    if (!ownerWallet) {
-      try {
-        const wallet = await adapter.connect();
-        ownerWallet = wallet.address;
-        setWalletState({
-          status: adapter.getStatus(),
-          address: wallet.address,
-          network: wallet.network,
-          available: adapter.isAvailable(),
-          error: null
-        });
-      } catch (error) {
-        setSubmitError(error instanceof Error ? error.message : "Failed to connect Crossmark.");
-        setIsSubmitting(false);
-        return;
-      }
-    }
+    const ownerWallet = currentWalletState.address;
 
     const formData = new FormData(event.currentTarget);
     const parsedDraft = createTextbookDraftSchema.safeParse({
@@ -280,7 +312,7 @@ export function TextbookForm() {
           <strong>Address:</strong> {walletState.address ?? "Not connected"}
         </p>
         <p style={{ margin: 0 }}>
-          <strong>Network:</strong> {walletState.network ?? "Unknown until connected"}
+          <strong>Network:</strong> {formatNetworkDisplay(walletState.network)}
         </p>
         {!walletState.available ? (
           <p style={{ margin: 0, color: "#8b2414" }}>
@@ -292,6 +324,13 @@ export function TextbookForm() {
             <strong>Error:</strong> {walletState.error}
           </p>
         ) : null}
+        {mintRequirementMessage ? (
+          <p style={{ margin: 0, color: "#8b2414", fontWeight: 600 }}>{mintRequirementMessage}</p>
+        ) : (
+          <p style={{ margin: 0, color: "#17331d", fontWeight: 600 }}>
+            Wallet connected on XRPL testnet. Minting is enabled.
+          </p>
+        )}
       </section>
 
       <div
@@ -331,7 +370,7 @@ export function TextbookForm() {
       ) : null}
 
       <SubmitButton
-        disabled={isPending || isSubmitting || walletState.status === "connecting" || !walletState.available}
+        disabled={!canMint || isPending || isSubmitting || walletState.status === "connecting"}
         isSubmitting={isSubmitting || isPending}
       />
     </form>

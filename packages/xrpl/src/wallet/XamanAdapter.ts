@@ -3,6 +3,8 @@ import type {
   WalletAdapter,
   WalletAdapterStatus,
   WalletNetwork,
+  WalletState,
+  WalletStateListener,
   WalletSubmitTransactionInput,
   WalletSubmitTransactionResult
 } from "./types";
@@ -27,6 +29,21 @@ export class XamanAdapter implements WalletAdapter {
     return this.network;
   }
 
+  public getState(): WalletState {
+    return {
+      walletType: this.id,
+      status: this.status,
+      address: this.address,
+      network: this.network,
+      isOnTestnet: this.isOnTestnet(),
+      available: this.isAvailable()
+    };
+  }
+
+  public isOnTestnet(): boolean {
+    return false;
+  }
+
   public isAvailable(): boolean {
     return false;
   }
@@ -40,6 +57,15 @@ export class XamanAdapter implements WalletAdapter {
     this.address = null;
     this.network = null;
     this.status = "ready";
+  }
+
+  public refreshState(): WalletState {
+    return this.getState();
+  }
+
+  public subscribe(listener: WalletStateListener): () => void {
+    listener(this.getState());
+    return () => {};
   }
 
   public async signAndSubmitTransaction(
