@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { TextbookForm } from "./TextbookForm";
 
+export const runtime = "nodejs";
+
 export default function NewTextbookPage() {
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>

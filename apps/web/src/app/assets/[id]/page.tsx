@@ -5,6 +5,7 @@ import { getTextbookAssetById, reconcileTextbookAsset } from "@/lib/assets/textb
 import { hasSupabaseServerConfig } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 type AssetDetailPageProps = {
   params: Promise<{

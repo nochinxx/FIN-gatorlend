@@ -4,6 +4,7 @@ import { listTextbookAssets } from "@/lib/assets/textbooks";
 import { hasSupabaseServerConfig } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function CatalogPage() {
   const hasConfig = hasSupabaseServerConfig();

@@ -29,6 +29,35 @@ XRPL campus tokenization platform scaffold for unique campus assets using XLS-20
 4. Install dependencies with `pnpm install`.
 5. Start the app with `pnpm dev:web`.
 
+## Vercel Deployment
+
+Use the `apps/web` project as the Vercel app root and configure the deployment with Node.js runtime support for the textbook mint flow pages.
+
+Required environment variables for the web app:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_XRPL_NETWORK=testnet`
+- `NEXT_PUBLIC_XRPL_TESTNET_RPC_URL`
+- `NEXT_PUBLIC_XRPL_TESTNET_HTTP_URL`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `XRPL_TESTNET_RPC_URL`
+- `XRPL_TESTNET_HTTP_URL`
+
+Recommended deployment checklist:
+
+1. Add the environment variables above to the Vercel project for Preview and Production.
+2. Keep all XRPL endpoints pointed at testnet only.
+3. Run `pnpm install`, `pnpm typecheck`, and `pnpm build` before the demo deployment.
+4. Test the deployed preview in a desktop browser with Crossmark installed and switched to XRPL testnet.
+
+Deployment caveats:
+
+- Crossmark is a browser extension wallet, so the mint flow only works in a browser where the extension is installed and allowed on the deployed preview domain.
+- The server-side XRPL validation/finalization path uses JSON-RPC HTTP requests, which is compatible with Vercel serverless execution. It does not depend on maintaining a websocket connection on the server.
+- The catalog and detail pages are intentionally dynamic because they depend on live Supabase and XRPL-backed state.
+
 ## Guardrails
 
 - Never commit seeds, private keys, service role keys, or fake credentials.
