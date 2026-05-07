@@ -1,11 +1,23 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isEmailAllowedForDemo } from "./lib/auth/allowlist";
+import {
+  canAccessMarketplaceRoutes,
+  canAccessProtectedAppRoutes
+} from "./lib/auth/access";
 import { getSupabaseAnonKey, getSupabaseUrl } from "./lib/supabase/config";
 
+function isMarketplacePath(pathname: string): boolean {
+  return pathname === "/marketplace" || pathname === "/listings/new" || pathname.startsWith("/listings/");
+}
+
 function isProtectedPath(pathname: string): boolean {
-  return pathname === "/catalog" || pathname === "/textbooks/new" || pathname.startsWith("/assets/");
+  return (
+    pathname === "/catalog" ||
+    pathname === "/textbooks/new" ||
+    pathname.startsWith("/assets/") ||
+    isMarketplacePath(pathname)
+  );
 }
 
 function buildLoginRedirect(request: NextRequest, reason?: "not-authorized") {
@@ -53,7 +65,11 @@ export async function middleware(request: NextRequest) {
     return buildLoginRedirect(request);
   }
 
-  if (!isEmailAllowedForDemo(user.email)) {
+  const canAccess = isMarketplacePath(request.nextUrl.pathname)
+    ? canAccessMarketplaceRoutes(user.email)
+    : canAccessProtectedAppRoutes(user.email);
+
+  if (!canAccess) {
     return buildLoginRedirect(request, "not-authorized");
   }
 
@@ -61,5 +77,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/catalog", "/textbooks/new", "/assets/:path*"]
+  matcher: ["/catalog", "/marketplace", "/textbooks/new", "/listings/new", "/assets/:path*", "/listings/:path*"]
 };

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 
 import { BrandLogo } from "@/components/BrandLogo";
-import { isEmailAllowedForDemo } from "@/lib/auth/allowlist";
+import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import { LoginForm } from "./LoginForm";
@@ -30,11 +30,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (isEmailAllowedForDemo(user?.email)) {
+  if (canAccessProtectedAppRoutes(user?.email)) {
     redirect(nextPath);
   }
 
   const notAuthorized = resolvedSearchParams.error === "not-authorized";
+  const profileSetupFailed = resolvedSearchParams.error === "profile-setup-failed";
+  const magicLinkExpired = resolvedSearchParams.error === "magic-link-expired";
+  const authExchangeFailed = resolvedSearchParams.error === "auth-exchange-failed";
 
   return (
     <main
@@ -78,8 +81,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           Sign in for the protected demo routes
         </h1>
         <p style={{ lineHeight: 1.6, textAlign: "center", color: "#4f4f4f" }}>
-          Use an approved team email to receive a Supabase magic link. Protected pages are blocked
-          server-side until the session is valid and the email is allowlisted.
+          Use an `@sfsu.edu` email to receive a Supabase magic link. Protected pages are blocked
+          server-side until the session is valid and the user is allowed into the marketplace.
         </p>
 
         {notAuthorized ? (
@@ -95,6 +98,56 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             }}
           >
             Not authorized for demo.
+          </p>
+        ) : null}
+
+        {profileSetupFailed ? (
+          <p
+            style={{
+              margin: "1rem 0",
+              padding: "0.85rem 1rem",
+              borderRadius: 12,
+              background: "#fff3ef",
+              color: "#7f2413",
+              fontWeight: 600,
+              textAlign: "center"
+            }}
+          >
+            Sign-in succeeded, but profile setup failed. Apply
+            {" "}`supabase/migrations/0004_fix_profile_bootstrap_rls.sql`{" "}
+            in your Supabase project, then try again.
+          </p>
+        ) : null}
+
+        {magicLinkExpired ? (
+          <p
+            style={{
+              margin: "1rem 0",
+              padding: "0.85rem 1rem",
+              borderRadius: 12,
+              background: "#fff3ef",
+              color: "#7f2413",
+              fontWeight: 600,
+              textAlign: "center"
+            }}
+          >
+            That magic link has expired or is invalid. Request a new one and use the most recent email only once.
+          </p>
+        ) : null}
+
+        {authExchangeFailed ? (
+          <p
+            style={{
+              margin: "1rem 0",
+              padding: "0.85rem 1rem",
+              borderRadius: 12,
+              background: "#fff3ef",
+              color: "#7f2413",
+              fontWeight: 600,
+              textAlign: "center"
+            }}
+          >
+            Magic-link sign-in could not be completed. Request a fresh link and try again.
           </p>
         ) : null}
 

@@ -1,65 +1,19 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 import { WalletConnectionPanel } from "@/components/WalletConnectionPanel";
-
-const howItWorks = [
-  {
-    title: "Connect wallet",
-    description: "Use Crossmark to access the demo with a real XRPL testnet wallet."
-  },
-  {
-    title: "Mint asset",
-    description: "Create a textbook NFT on XRPL and register the matching asset record."
-  },
-  {
-    title: "Verify ownership",
-    description: "Check token state against the database before presenting marketplace data."
-  }
-];
-
-const featuredItems = [
-  {
-    name: "Lab Coat",
-    course: "BIO101",
-    price: "$25",
-    tokenId: "0008...A19F",
-    image: "/images/lab-coat.jpeg"
-  },
-  {
-    name: "TI-84 Calculator",
-    course: "MATH226",
-    price: "$40",
-    tokenId: "0008...C44D",
-    image: "/images/calculator.jpeg"
-  },
-  {
-    name: "Introduction to Algorithms",
-    course: "CSU340",
-    price: "$30",
-    tokenId: "0008...F72B",
-    image: "/images/textbook.jpg"
-  }
-];
-
-const whyItMatters = [
-  "Student demand for a campus marketplace is already strong.",
-  "Most resale transactions land in the $20–$50 range.",
-  "Frequent small trades benefit from fast, low-friction settlement."
-];
-
-const technology = [
-  "XRPL for low fees and fast settlement",
-  "Crossmark as the active wallet integration",
-  "On-chain plus off-chain validation before trust is shown",
-  "Protected demo access backed by auth and RLS-first data rules"
-];
-
-const roadmap = [
-  "Phase 1: SFSU",
-  "Phase 2: CSU system",
-  "Phase 3: multi-campus marketplace"
-];
+import {
+  ADVANCED_LAYER_LINE,
+  CURRENT_MVP_LINE,
+  LANDING_FEATURED_ITEMS,
+  LANDING_HERO_BODY,
+  LANDING_HERO_TITLE,
+  LANDING_HOW_IT_WORKS,
+  LANDING_ROADMAP,
+  LANDING_TOKENIZATION_POINTS,
+  LANDING_WHY_IT_MATTERS,
+  PILOT_DISCLAIMER
+} from "@/lib/marketing/publicContent";
 
 const sectionLabelStyle = {
   margin: 0,
@@ -97,15 +51,14 @@ export default function HomePage() {
                 letterSpacing: "-0.05em"
               }}
             >
-              Tokenized Campus Marketplace
+              {LANDING_HERO_TITLE}
             </h1>
             <p style={{ maxWidth: 620, margin: 0, fontSize: "1.08rem", lineHeight: 1.6, color: "#454545" }}>
-              Buy, sell, and verify student assets using XRPL. FIN GatorLend turns everyday campus
-              items into a fast, verifiable marketplace built for frequent student transactions.
+              {LANDING_HERO_BODY}
             </p>
             <div style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap", marginTop: "2rem" }}>
               <Link
-                href="/login"
+                href="/marketplace"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -118,10 +71,10 @@ export default function HomePage() {
                   fontWeight: 600
                 }}
               >
-                Enter App
+                Open Marketplace
               </Link>
               <Link
-                href="/catalog"
+                href="/listings/new"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -134,9 +87,16 @@ export default function HomePage() {
                   fontWeight: 600
                 }}
               >
-                View Catalog
+                Create Listing
               </Link>
             </div>
+            <div style={{ marginTop: "1.5rem", display: "grid", gap: "0.45rem", color: "#4e4e4e" }}>
+              <p style={{ margin: 0 }}><strong>{CURRENT_MVP_LINE}</strong></p>
+              <p style={{ margin: 0 }}><strong>{ADVANCED_LAYER_LINE}</strong></p>
+            </div>
+            <p style={{ margin: "1rem 0 0", fontSize: 14, color: "#555555", lineHeight: 1.6 }}>
+              {PILOT_DISCLAIMER}
+            </p>
           </div>
 
           <div
@@ -149,7 +109,7 @@ export default function HomePage() {
           >
             <Image
               src="/branding/sfsu-library.jpg"
-              alt="SFSU library environment"
+              alt="Campus library environment"
               width={1200}
               height={900}
               priority
@@ -163,14 +123,14 @@ export default function HomePage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
           <div>
             <p style={sectionLabelStyle}>Featured Items</p>
-            <h2 style={{ margin: "0.55rem 0 0", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Marketplace preview</h2>
+            <h2 style={{ margin: "0.55rem 0 0", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Example pilot categories</h2>
           </div>
           <p style={{ margin: 0, color: "#555555", maxWidth: 420 }}>
-            Mock items reflect the kinds of low-value, high-frequency campus trades this product is built for.
+            The first release focuses on simple academic items that are easy to understand, easy to verify visually, and useful for testing the request and handoff flow.
           </p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-          {featuredItems.map((item) => (
+          {LANDING_FEATURED_ITEMS.map((item) => (
             <article
               key={item.name}
               style={{
@@ -196,16 +156,16 @@ export default function HomePage() {
               <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: "1rem" }}>
                 <div>
                   <p style={{ margin: 0, color: "#6b6b6b", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    {item.course}
+                    {item.context}
                   </p>
                   <h3 style={{ margin: "0.45rem 0 0", fontSize: "1.1rem" }}>{item.name}</h3>
                 </div>
-                <p style={{ margin: 0, fontWeight: 700 }}>{item.price}</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>{item.label}</p>
               </div>
               <div style={{ marginTop: "1.2rem", paddingTop: "1rem", borderTop: "1px solid #efefef" }}>
-                <p style={{ margin: 0, color: "#5a5a5a", fontSize: 13 }}>Token ID</p>
+                <p style={{ margin: 0, color: "#5a5a5a", fontSize: 13 }}>{item.recordLabel}</p>
                 <p style={{ margin: "0.3rem 0 0", fontFamily: 'ui-monospace, SFMono-Regular, monospace', fontSize: 14 }}>
-                  {item.tokenId}
+                  {item.recordId}
                 </p>
               </div>
             </article>
@@ -219,7 +179,7 @@ export default function HomePage() {
           <p style={sectionLabelStyle}>How it works</p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", alignItems: "start" }}>
-          {howItWorks.map((item, index) => (
+          {LANDING_HOW_IT_WORKS.map((item, index) => (
             <article
               key={item.title}
               style={{
@@ -248,12 +208,10 @@ export default function HomePage() {
         >
           <div>
             <p style={sectionLabelStyle}>Why this matters</p>
-            <h2 style={{ margin: "0.55rem 0 0.8rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>
-              Built for the transaction pattern students already have
-            </h2>
+            <h2 style={{ margin: "0.55rem 0 0.8rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Built to learn from real pilot usage</h2>
           </div>
           <div style={{ display: "grid", gap: "0.85rem" }}>
-            {whyItMatters.map((item) => (
+            {LANDING_WHY_IT_MATTERS.map((item) => (
               <div key={item} style={{ display: "flex", gap: "0.75rem", alignItems: "start" }}>
                 <span style={{ marginTop: 8, width: 6, height: 6, borderRadius: 999, background: "#111111", flexShrink: 0 }} />
                 <p style={{ margin: 0, color: "#434343", lineHeight: 1.6 }}>{item}</p>
@@ -273,20 +231,18 @@ export default function HomePage() {
           }}
         >
           <div>
-            <p style={sectionLabelStyle}>Technology</p>
+            <p style={sectionLabelStyle}>Future of tokenization</p>
             <h2 style={{ margin: "0.55rem 0 0.85rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>
-              Trust comes from matching wallet, chain, and database state
+              Tokenization is an optional verification layer, not a first step.
             </h2>
             <p style={{ margin: 0, color: "#525252", lineHeight: 1.65 }}>
-              The demo uses Crossmark for wallet access, XRPL for settlement, and Supabase for
-              protected marketplace data. Asset detail views reconcile on-chain and off-chain state
-              before they present a trusted result.
+              The marketplace flow works with school-email access and Supabase-tracked ownership. For selected demo assets, the XRPL testnet flow can mint an XLS-20 NFT and compare on-chain state against marketplace metadata. This is used for learning, verification experiments, and technical demonstration.
             </p>
           </div>
           <div style={{ display: "grid", gap: "1rem" }}>
             <WalletConnectionPanel />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              {technology.map((item) => (
+              {LANDING_TOKENIZATION_POINTS.map((item) => (
                 <article
                   key={item}
                   style={{
@@ -305,71 +261,47 @@ export default function HomePage() {
       </section>
 
       <section style={{ maxWidth: 1120, margin: "0 auto", padding: "4rem 0 0" }}>
-        <div
-          style={{
-            display: "grid",
-            gap: "1.5rem"
-          }}
-        >
+        <div style={{ display: "grid", gap: "1.5rem" }}>
           <div>
             <p style={sectionLabelStyle}>Roadmap</p>
             <h2 style={{ margin: "0.55rem 0 0.85rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>
-              Start with one campus, then expand the network
+              Roadmap: learn first, expand carefully
             </h2>
             <p style={{ margin: 0, maxWidth: 680, color: "#555555", lineHeight: 1.6 }}>
-              The near-term path is a focused SFSU pilot, then a broader CSU rollout, then a
-              connected student marketplace across campuses.
+              The next steps focus on improving the request and handoff flow, then evaluating where optional tokenization is actually useful.
             </p>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-                gap: "0.85rem",
-                alignItems: "stretch",
-                marginTop: "1.75rem"
-              }}
-            >
-              {roadmap.map((item, index) => (
-                <div
-                  key={item}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "0.85rem", alignItems: "stretch", marginTop: "1.75rem" }}>
+            {LANDING_ROADMAP.map((item, index) => (
+              <div
+                key={item}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.85rem"
+                }}
+              >
+                <article
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.85rem"
+                    flex: 1,
+                    padding: "1rem 1.1rem",
+                    border: "1px solid #ebebeb",
+                    borderRadius: 16,
+                    background: "#ffffff"
                   }}
                 >
-                  <article
-                    style={{
-                      flex: 1,
-                      padding: "1rem 1.1rem",
-                      border: "1px solid #ebebeb",
-                      borderRadius: 16,
-                      background: "#ffffff"
-                    }}
-                  >
-                    <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      Step {index + 1}
-                    </p>
-                    <p style={{ margin: "0.35rem 0 0" }}>{item}</p>
-                  </article>
-                  {index < roadmap.length - 1 ? (
-                    <span style={{ color: "#888888", fontSize: 22, lineHeight: 1 }} aria-hidden="true">
-                      →
-                    </span>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-            <Image
-              src="/branding/csu-logo.png"
-              alt="California State University"
-              width={120}
-              height={51}
-              style={{ width: "auto", height: "auto" }}
-            />
-            <p style={{ margin: 0, color: "#5c5c5c" }}>SFSU pilot to CSU network expansion</p>
+                  <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Step {index + 1}
+                  </p>
+                  <p style={{ margin: "0.35rem 0 0" }}>{item}</p>
+                </article>
+                {index < LANDING_ROADMAP.length - 1 ? (
+                  <span style={{ color: "#888888", fontSize: 22, lineHeight: 1 }} aria-hidden="true">
+                    →
+                  </span>
+                ) : null}
+              </div>
+            ))}
           </div>
         </div>
       </section>

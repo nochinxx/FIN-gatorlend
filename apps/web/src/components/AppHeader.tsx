@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
+
 import { BrandLogo } from "./BrandLogo";
 
 const navLinkStyle = {
@@ -9,7 +11,12 @@ const navLinkStyle = {
   fontWeight: 500
 } as const;
 
-export function AppHeader() {
+export async function AppHeader() {
+  const supabase = await createSupabaseServerAuthClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
   return (
     <header
       style={{
@@ -38,14 +45,17 @@ export function AppHeader() {
           <Link href="/" style={navLinkStyle}>
             Home
           </Link>
-          <Link href="/catalog" style={navLinkStyle}>
-            Catalog
+          <Link href="/marketplace" style={navLinkStyle}>
+            Marketplace
           </Link>
-          <Link href="/textbooks/new" style={navLinkStyle}>
-            Create Asset
+          <Link href="/catalog" style={navLinkStyle}>
+            XRPL Demo
+          </Link>
+          <Link href="/listings/new" style={navLinkStyle}>
+            Create Listing
           </Link>
           <Link
-            href="/login"
+            href={user ? "/auth/signout" : "/login"}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -59,7 +69,7 @@ export function AppHeader() {
               fontWeight: 600
             }}
           >
-            Enter App
+            {user ? "Sign Out" : "Enter App"}
           </Link>
         </nav>
       </div>

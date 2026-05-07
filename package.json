@@ -6,10 +6,13 @@
   "scripts": {
     "dev:web": "pnpm --filter @gatorlend/web dev",
     "build": "pnpm -r build",
+    "test": "pnpm --filter @gatorlend/core test && vitest run",
+    "test:watch": "vitest",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm --filter @gatorlend/web lint"
   },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }

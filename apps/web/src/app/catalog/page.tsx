@@ -60,21 +60,24 @@ export default async function CatalogPage() {
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12, color: "#666666" }}>
-            Marketplace catalog
+            Advanced verification layer
           </p>
-          <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Campus assets available now</h1>
+          <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>XRPL-backed textbook assets</h1>
           <p style={{ maxWidth: 720, lineHeight: 1.6, color: "#4a4a4a" }}>
-            Browse verified campus items registered to XRPL-backed asset records. The current demo
-            catalog focuses on textbooks, with room to expand into broader student marketplace
-            categories.
+            This route is the optional XRPL verification slice, not the default marketplace flow.
+            It shows textbook assets that have been minted or registered against XRPL testnet and
+            reconciled against Supabase metadata.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
           <Link href="/" style={{ color: "#17331d" }}>
             Home
           </Link>
+          <Link href="/marketplace" style={{ color: "#17331d" }}>
+            Marketplace
+          </Link>
           <Link href="/textbooks/new" style={{ color: "#17331d" }}>
-            Create asset
+            Mint Demo Asset
           </Link>
         </div>
       </div>

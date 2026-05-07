@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { FOOTER_DISCLAIMER } from "@/lib/marketing/publicContent";
 
 export const metadata: Metadata = {
   title: "FIN GatorLend",
-  description: "XRPL campus tokenization platform scaffold for textbook-backed XLS-20 assets."
+  description: "Student-built exchange pilot with optional XRPL testnet verification for selected demo assets."
 };
 
 type RootLayoutProps = {
@@ -26,6 +27,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <AppHeader />
         {children}
+        <footer
+          style={{
+            borderTop: "1px solid #ebebeb",
+            padding: "1.2rem 1.5rem 2rem",
+            color: "#5a5a5a"
+          }}
+        >
+          <div style={{ maxWidth: 1120, margin: "0 auto", fontSize: 14, lineHeight: 1.6 }}>
+            {FOOTER_DISCLAIMER}
+          </div>
+        </footer>
       </body>
     </html>
   );

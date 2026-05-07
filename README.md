@@ -92,7 +92,12 @@ demo domain as the primary Site URL.
 
 ## Current State
 
-This repo now includes a real textbook XRPL testnet mint path. The shared asset model supports textbooks, goggles, and lab coats through a typed metadata union, while textbook minting happens through Crossmark and the server verifies the resulting XLS-20 NFT before persisting the Supabase record. Transfer execution, richer authenticated Supabase access, and additional asset flows still remain TODOs.
+This repo now has two layers running in parallel:
+
+- a market-first marketplace flow for SFSU users with mock-tokenized listings, request handling, and ownership transfer tracking
+- the earlier textbook XRPL testnet slice, which still supports Crossmark-backed XLS-20 minting and XRPL verification
+
+The shared model now supports broader marketplace asset types, while XRPL minting remains optional instead of blocking normal marketplace usage.
 
 ## Current Vertical Slice
 
@@ -102,3 +107,16 @@ This repo now includes a real textbook XRPL testnet mint path. The shared asset 
 - Supabase writes and reads use shared fields plus `metadata`
 - Textbook creation prepares an `NFTokenMint`, signs it in Crossmark, then verifies the validated XRPL transaction before insert
 - Textbook detail validates the stored record against the live XRPL NFT commitment before showing status
+
+## Market-First Layer
+
+- Marketplace route at `/marketplace`
+- Listing creation at `/listings/new`
+- Listing detail and request flow at `/listings/[id]`
+- `@sfsu.edu` login first, wallet optional
+- mock-tokenized listings by default
+- request / accept / decline / complete transfer lifecycle inside Supabase
+- ownership transfer tracked off-chain for now
+- payment remains external
+
+See [`docs/current-marketplace-architecture.md`](/Users/mariojillesca/Code/FIN-gatorlend/docs/current-marketplace-architecture.md) for the current direction and limitations.

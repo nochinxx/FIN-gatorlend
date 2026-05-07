@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { canStartAuthFlow } from "@/lib/auth/access";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type LoginFormProps = {
@@ -21,6 +22,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     setIsSubmitting(true);
 
     try {
+      if (!canStartAuthFlow(email)) {
+        throw new Error("Use an @sfsu.edu email to access the marketplace demo.");
+      }
+
       const supabase = createSupabaseBrowserClient();
       const redirectUrl = new URL("/auth/callback", window.location.origin);
       redirectUrl.searchParams.set("next", nextPath);
@@ -47,7 +52,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem", marginTop: "1.5rem" }}>
       <label style={{ display: "grid", gap: "0.35rem" }}>
-        <span style={{ fontWeight: 600, color: "#222222" }}>Approved email</span>
+        <span style={{ fontWeight: 600, color: "#222222" }}>SFSU email</span>
         <input
           type="email"
           required
@@ -92,6 +97,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         </p>
       ) : null}
 
+      <p style={{ margin: 0, color: "#5a5a5a", lineHeight: 1.5, fontSize: 14 }}>
+        First-time magic link sign-in will create your account automatically after verification.
+      </p>
+
       <button
         type="submit"
         disabled={isSubmitting}
@@ -105,7 +114,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           cursor: isSubmitting ? "not-allowed" : "pointer"
         }}
       >
-        {isSubmitting ? "Sending magic link..." : "Send magic link"}
+        {isSubmitting ? "Sending magic link..." : "Continue with magic link"}
       </button>
     </form>
   );
