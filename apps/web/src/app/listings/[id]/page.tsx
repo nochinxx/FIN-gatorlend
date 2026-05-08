@@ -26,7 +26,42 @@ function resolveMarketplaceImage(imageUrl: string | null | undefined) {
     return imageUrl;
   }
 
-  return "/images/textbook.jpg";
+  return null;
+}
+
+function ListingImagePlaceholder() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "grid",
+        placeItems: "center",
+        color: "#6a6a6a"
+      }}
+    >
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 7h8" />
+        <path d="M9 4h6l1 3H8l1-3Z" />
+        <path d="M6 7h12l-1 11H7L6 7Z" />
+        <path d="M10 11v3" />
+        <path d="M14 11v3" />
+      </svg>
+    </div>
+  );
+}
+
+function formatTokenizationStatus(status: string) {
+  if (status === "mock_tokenized") {
+    return "Not minted on-chain";
+  }
+
+  if (status === "xrpl_testnet_minted" || status === "verified_on_chain") {
+    return "Minted on XRPL";
+  }
+
+  return status.replaceAll("_", " ");
 }
 
 type ListingDetailPageProps = {
@@ -104,17 +139,21 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
         }}
       >
         <div style={{ overflow: "hidden", borderRadius: 20, border: "1px solid #ebebeb", position: "relative", aspectRatio: "1 / 1", background: "#f7f7f7" }}>
-          <Image
-            src={imageSrc}
-            alt={listing.title}
-            fill
-            sizes="340px"
-            style={{
-              objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
-              objectPosition: "center",
-              padding: imageSrc.includes("calculator") ? "1rem" : 0
-            }}
-          />
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={listing.title}
+              fill
+              sizes="340px"
+              style={{
+                objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
+                objectPosition: "center",
+                padding: imageSrc.includes("calculator") ? "1rem" : 0
+              }}
+            />
+          ) : (
+            <ListingImagePlaceholder />
+          )}
         </div>
 
         <div style={{ display: "grid", gap: "1rem" }}>
@@ -127,15 +166,15 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
                 {listing.listing_type}
               </span>
               <span style={{ padding: "0.4rem 0.7rem", borderRadius: 999, background: listing.xrpl_token_id ? "#edf4ff" : "#f3f3f3", color: listing.xrpl_token_id ? "#234f95" : "#444444" }}>
-                {listing.xrpl_token_id ? "XRPL minted/testnet" : "Mock asset record"}
+                {listing.xrpl_token_id ? "Minted on XRPL" : "Not minted on-chain"}
               </span>
             </div>
 
             <div style={{ marginTop: "1rem", display: "grid", gap: "0.5rem" }}>
               <p style={{ margin: 0 }}><strong>Owner:</strong> {getProfileIdentityLabel(ownerProfile)}</p>
               <p style={{ margin: 0 }}><strong>Status:</strong> {listing.status}</p>
-              <p style={{ margin: 0 }}><strong>Tokenization:</strong> {listing.tokenization_status}</p>
-              <p style={{ margin: 0 }}><strong>Mock asset ID:</strong> {listing.mock_token_id ?? "Not assigned"}</p>
+              <p style={{ margin: 0 }}><strong>Tokenization:</strong> {formatTokenizationStatus(listing.tokenization_status)}</p>
+              <p style={{ margin: 0 }}><strong>Record ID:</strong> {listing.mock_token_id ?? "Not assigned"}</p>
               <p style={{ margin: 0 }}><strong>XRPL token ID:</strong> {listing.xrpl_token_id ?? "Not minted"}</p>
               {listing.owner_wallet ? (
                 <p style={{ margin: 0 }}><strong>Wallet:</strong> {listing.owner_wallet}</p>
@@ -154,7 +193,7 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
             <div style={{ display: "grid", gap: "0.45rem", color: "#4f4f4f" }}>
               <p style={{ margin: 0 }}>1. A verified user requests this listing.</p>
               <p style={{ margin: 0 }}>2. The owner accepts or declines.</p>
-              <p style={{ margin: 0 }}>3. The users confirm the handoff outside the pilot.</p>
+              <p style={{ margin: 0 }}>3. The users confirm the handoff outside the app.</p>
               <p style={{ margin: 0 }}>4. The owner completes the transfer to update marketplace ownership.</p>
             </div>
           </article>

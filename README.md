@@ -79,11 +79,11 @@ Protected routes:
 Supabase Dashboard configuration:
 
 - Site URL:
-  `https://YOUR_VERCEL_DOMAIN`
+  `https://fin-gatorlend.com`
 - Redirect URLs:
-  `http://localhost:3000/auth/callback`
-  `https://YOUR_VERCEL_DOMAIN/auth/callback`
-  `https://YOUR-PREVIEW-DOMAIN.vercel.app/auth/callback`
+  `http://localhost:3000/**`
+  `https://fin-gatorlend.com/**`
+  `https://YOUR-PREVIEW-DOMAIN.vercel.app/**`
 
 Resend SMTP is configured in the Supabase Dashboard, not in the app. After a verified user logs in,
 the app bootstraps a `profiles` row if needed and requires a unique username before core
@@ -104,7 +104,7 @@ See [`docs/auth.md`](/Users/mariojillesca/Code/FIN-gatorlend/docs/auth.md) for t
 
 This repo now has two layers running in parallel:
 
-- a market-first marketplace flow for SFSU users with mock-tokenized listings, request handling, and ownership transfer tracking
+- a market-first marketplace flow for SFSU users with listings, request handling, and ownership transfer tracking
 - the earlier textbook XRPL testnet slice, which still supports Crossmark-backed XLS-20 minting and XRPL verification
 
 The shared model now supports broader marketplace asset types, while XRPL minting remains optional instead of blocking normal marketplace usage.

@@ -15,12 +15,6 @@ type LoginFormProps = {
 
 type AuthMode = "login" | "signup" | "forgot";
 
-function getCallbackUrl(pathname: string, nextPath: string): string {
-  const redirectUrl = new URL(pathname, window.location.origin);
-  redirectUrl.searchParams.set("next", nextPath);
-  return redirectUrl.toString();
-}
-
 const buttonStyle = {
   padding: "0.9rem 1.2rem",
   borderRadius: 12,
@@ -107,17 +101,23 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         throw new Error("Password and confirm password must match.");
       }
 
-      const supabase = createSupabaseBrowserClient();
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          emailRedirectTo: getCallbackUrl("/auth/callback", nextPath)
-        }
+      const response = await fetch("/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password
+        })
       });
 
-      if (signUpError) {
-        throw signUpError;
+      const result = (await response.json()) as {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to send verification email. Please try again in a few minutes.");
       }
 
       setMessage("Check your school email to verify your account. After verification, return here to log in.");
@@ -142,13 +142,22 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         throw new Error("Use your exact @sfsu.edu school email to reset your password.");
       }
 
-      const supabase = createSupabaseBrowserClient();
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: getCallbackUrl("/auth/callback", "/marketplace")
+      const response = await fetch("/auth/password-reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase()
+        })
       });
 
-      if (resetError) {
-        throw resetError;
+      const result = (await response.json()) as {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to send password reset email. Please try again in a few minutes.");
       }
 
       setMessage("If an account exists for that school email, a password reset link has been sent.");

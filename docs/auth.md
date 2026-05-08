@@ -62,3 +62,15 @@ Username rules:
 - Listings, requests, and transfers use Supabase-authenticated user IDs.
 - Username changes do not break ownership records because listings reference `owner_user_id`.
 - XRPL minting remains an optional testnet verification layer for selected textbook flows.
+
+## Auth Email Redirect Troubleshooting
+
+- Signup confirmation uses `getAuthCallbackUrl("/profile/setup")`.
+- Password reset uses `getAuthCallbackUrl("/auth/reset-password")`.
+- `NEXT_PUBLIC_SITE_URL` controls production redirects.
+- In production, `NEXT_PUBLIC_SITE_URL` should be `https://fin-gatorlend.com`.
+- Local development can use `http://localhost:3000`.
+- Supabase Dashboard allowed redirect URLs should include:
+  `https://fin-gatorlend.com/**`
+  `http://localhost:3000/**`
+- Resend may still warn that links use the `supabase.co` auth domain unless Supabase custom domains are configured. That warning is separate from whether the final redirect works.

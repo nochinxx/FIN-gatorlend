@@ -6,6 +6,7 @@ import { getProfileIdentityLabel, profileNeedsSetup } from "@/lib/auth/profile-s
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import { BrandLogo } from "./BrandLogo";
+import { SignOutButton } from "./SignOutButton";
 
 const navLinkStyle = {
   color: "#111111",
@@ -74,23 +75,42 @@ export async function AppHeader() {
               Signed in as <strong>{identityLabel}</strong>
             </span>
           ) : null}
-          <Link
-            href={user ? "/auth/signout" : "/login"}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0.65rem 0.95rem",
-              borderRadius: 999,
-              background: "#111111",
-              color: "#ffffff",
-              textDecoration: "none",
-              fontSize: 14,
-              fontWeight: 600
-            }}
-          >
-            {user ? "Sign Out" : "Enter App"}
-          </Link>
+          {user ? (
+            <SignOutButton
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0.65rem 0.95rem",
+                borderRadius: 999,
+                border: 0,
+                background: "#111111",
+                color: "#ffffff",
+                textDecoration: "none",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            />
+          ) : (
+            <Link
+              href="/login"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0.65rem 0.95rem",
+                borderRadius: 999,
+                background: "#111111",
+                color: "#ffffff",
+                textDecoration: "none",
+                fontSize: 14,
+                fontWeight: 600
+              }}
+            >
+              Enter App
+            </Link>
+          )}
         </nav>
       </div>
     </header>

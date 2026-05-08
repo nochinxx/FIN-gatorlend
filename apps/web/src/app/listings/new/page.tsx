@@ -14,9 +14,9 @@ export default function NewListingPage() {
           </p>
           <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Create listing</h1>
           <p style={{ maxWidth: 720, lineHeight: 1.6 }}>
-            Start with the marketplace record, not the wallet flow. This creates a mock-tokenized
-            listing tied to your verified school-email account so other users can request it
-            immediately. XRPL minting remains optional and separate from this procedure.
+            Start with the marketplace record, not the wallet flow. This creates a listing tied to
+            your verified school-email account so other users can request it immediately. XRPL
+            minting remains optional and separate from this procedure.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
@@ -53,9 +53,7 @@ export default function NewListingPage() {
             lineHeight: 1.6
           }}
         >
-          Do not list restricted, unsafe, illegal, perishable, non-transferable, or institutionally
-          controlled items. Food, meal swipes, alcohol, drugs, weapons, and official campus
-          benefits are not allowed.
+          Do not list restricted, unsafe, illegal, perishable, non-transferable, or institutionally controlled items
         </p>
         <CreateListingForm />
       </section>

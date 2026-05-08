@@ -16,17 +16,29 @@ export const runtime = "nodejs";
 function getListingBadge(listing: Awaited<ReturnType<typeof listMarketplaceListings>>[number]) {
   if (listing.xrpl_token_id) {
     return {
-      label: "XRPL minted/testnet",
+      label: "Minted on XRPL",
       background: "#edf4ff",
       color: "#234f95"
     };
   }
 
   return {
-    label: "Mock asset record",
+    label: "Not minted on-chain",
     background: "#f3f3f3",
     color: "#444444"
   };
+}
+
+function formatTokenizationStatus(status: Awaited<ReturnType<typeof listMarketplaceListings>>[number]["tokenization_status"]) {
+  if (status === "mock_tokenized") {
+    return "Not minted on-chain";
+  }
+
+  if (status === "xrpl_testnet_minted" || status === "verified_on_chain") {
+    return "Minted on XRPL";
+  }
+
+  return status.replaceAll("_", " ");
 }
 
 function resolveMarketplaceImage(imageUrl: string | null | undefined) {
@@ -34,7 +46,30 @@ function resolveMarketplaceImage(imageUrl: string | null | undefined) {
     return imageUrl;
   }
 
-  return "/images/textbook.jpg";
+  return null;
+}
+
+function ListingImagePlaceholder() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "grid",
+        placeItems: "center",
+        color: "#6a6a6a"
+      }}
+    >
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 7h8" />
+        <path d="M9 4h6l1 3H8l1-3Z" />
+        <path d="M6 7h12l-1 11H7L6 7Z" />
+        <path d="M10 11v3" />
+        <path d="M14 11v3" />
+      </svg>
+    </div>
+  );
 }
 
 type MarketplacePageProps = {
@@ -70,14 +105,13 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12, color: "#666666" }}>
-            Verified student pilot
+            Marketplace
           </p>
-          <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Active pilot listings</h1>
+          <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Active listings</h1>
           <p style={{ maxWidth: 720, lineHeight: 1.6, color: "#4a4a4a" }}>
-            Browse demo listings for common academic items posted by verified school-email users.
-            The marketplace flow is listing first: create a record, send a request, confirm the
-            handoff, and update ownership inside the app. Wallet usage is optional and not required
-            for normal marketplace activity.
+            Browse listings for common academic items posted by verified school-email users. Create
+            a listing, send a request, confirm the handoff, and update ownership inside the app.
+            Wallet usage is optional and not required for normal marketplace activity.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
@@ -129,11 +163,11 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           gap: "0.45rem"
         }}
       >
-        <p style={{ margin: 0, fontWeight: 600 }}>Pilot procedure</p>
+        <p style={{ margin: 0, fontWeight: 600 }}>How it works</p>
         <p style={{ margin: 0, color: "#4f4f4f" }}>1. A verified user creates a listing.</p>
         <p style={{ margin: 0, color: "#4f4f4f" }}>2. Another verified user requests it.</p>
         <p style={{ margin: 0, color: "#4f4f4f" }}>3. The owner accepts or declines.</p>
-        <p style={{ margin: 0, color: "#4f4f4f" }}>4. Both sides confirm the handoff outside the pilot.</p>
+        <p style={{ margin: 0, color: "#4f4f4f" }}>4. Both sides confirm the handoff outside the app.</p>
         <p style={{ margin: 0, color: "#4f4f4f" }}>5. The owner completes the transfer and the app updates ownership.</p>
       </section>
 
@@ -152,17 +186,21 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
               <article key={listing.id} style={{ padding: "1.15rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "112px minmax(0, 1fr)", gap: "1rem", alignItems: "start" }}>
                   <div style={{ overflow: "hidden", borderRadius: 16, border: "1px solid #efefef", background: "#f7f7f7", aspectRatio: "1 / 1", position: "relative" }}>
-                    <Image
-                      src={imageSrc}
-                      alt={listing.title}
-                      fill
-                      sizes="112px"
-                      style={{
-                        objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
-                        objectPosition: "center",
-                        padding: imageSrc.includes("calculator") ? "0.6rem" : 0
-                      }}
-                    />
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt={listing.title}
+                        fill
+                        sizes="112px"
+                        style={{
+                          objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
+                          objectPosition: "center",
+                          padding: imageSrc.includes("calculator") ? "0.6rem" : 0
+                        }}
+                      />
+                    ) : (
+                      <ListingImagePlaceholder />
+                    )}
                   </div>
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
@@ -187,7 +225,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                     <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
                       <p style={{ margin: 0, color: "#4a4a4a" }}>Owner: {ownerLabel}</p>
                       <p style={{ margin: 0, color: "#4a4a4a" }}>Status: {listing.status}</p>
-                      <p style={{ margin: 0, color: "#4a4a4a" }}>Tokenization: {listing.tokenization_status}</p>
+                      <p style={{ margin: 0, color: "#4a4a4a" }}>Tokenization: {formatTokenizationStatus(listing.tokenization_status)}</p>
                       <p style={{ margin: 0, color: "#4a4a4a" }}>
                         Exchange preferences: {listing.payment_methods?.length ? listing.payment_methods.join(", ") : "Flexible"}
                       </p>
