@@ -11,6 +11,8 @@ GatorLend uses Supabase Auth for:
 Resend SMTP is configured in the Supabase Dashboard. The app does not send auth emails directly.
 Approved tester emails can also be enabled in app code for development without changing the
 default school-email requirement for regular users.
+If tester overrides are used, the matching Supabase RLS migration must also be applied so
+profile bootstrap and marketplace writes are allowed for those exact emails.
 
 ## Pilot Access Rules
 
@@ -24,7 +26,7 @@ default school-email requirement for regular users.
 
 1. A user signs up with an `@sfsu.edu` email and password.
 2. Supabase sends the confirmation email through the configured SMTP provider.
-3. The user confirms through `/auth/callback`.
+3. The user confirms through `/auth/confirm`.
 4. The app bootstraps a `profiles` row if one does not already exist.
 
 ## Login And Profile Setup
@@ -68,8 +70,8 @@ Username rules:
 
 ## Auth Email Redirect Troubleshooting
 
-- Signup confirmation uses `getAuthCallbackUrl("/profile/setup")`.
-- Password reset uses `getAuthCallbackUrl("/auth/reset-password")`.
+- Signup confirmation uses `getAuthCallbackUrl("/profile/setup")`, which now resolves to `/auth/confirm`.
+- Password reset uses `getAuthCallbackUrl("/auth/reset-password")`, which now resolves to `/auth/confirm`.
 - `NEXT_PUBLIC_SITE_URL` controls production redirects.
 - In production, `NEXT_PUBLIC_SITE_URL` should be `https://fin-gatorlend.com`.
 - Local development can use `http://localhost:3000`.

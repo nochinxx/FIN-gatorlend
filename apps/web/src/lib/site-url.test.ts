@@ -69,7 +69,7 @@ describe("getAuthCallbackUrl", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "https://fin-gatorlend.com";
 
     expect(getAuthCallbackUrl()).toBe(
-      "https://fin-gatorlend.com/auth/callback?next=%2Fmarketplace"
+      "https://fin-gatorlend.com/auth/confirm?next=%2Fmarketplace"
     );
   });
 
@@ -77,7 +77,7 @@ describe("getAuthCallbackUrl", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "https://fin-gatorlend.com";
 
     expect(getAuthCallbackUrl("/profile/setup")).toBe(
-      "https://fin-gatorlend.com/auth/callback?next=%2Fprofile%2Fsetup"
+      "https://fin-gatorlend.com/auth/confirm?next=%2Fprofile%2Fsetup"
     );
   });
 
@@ -85,7 +85,7 @@ describe("getAuthCallbackUrl", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "https://fin-gatorlend.com";
 
     expect(getAuthCallbackUrl("/auth/reset-password")).toBe(
-      "https://fin-gatorlend.com/auth/callback?next=%2Fauth%2Freset-password"
+      "https://fin-gatorlend.com/auth/confirm?next=%2Fauth%2Freset-password"
     );
   });
 
@@ -93,7 +93,7 @@ describe("getAuthCallbackUrl", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "https://fin-gatorlend.com";
 
     expect(getAuthCallbackUrl("marketplace")).toBe(
-      "https://fin-gatorlend.com/auth/callback?next=%2Fmarketplace"
+      "https://fin-gatorlend.com/auth/confirm?next=%2Fmarketplace"
     );
   });
 });

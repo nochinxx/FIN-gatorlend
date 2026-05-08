@@ -32,6 +32,12 @@ function buildLoginErrorRedirect(
   return NextResponse.redirect(redirectUrl);
 }
 
+function logAuthCallback(event: string, details: Record<string, unknown>) {
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[auth/callback]", event, details);
+  }
+}
+
 function getOtpType(type: string | null): EmailOtpType | null {
   switch (type) {
     case "signup":
@@ -56,7 +62,23 @@ export async function GET(request: NextRequest) {
   const otpType = getOtpType(authType);
   const nextPath = sanitizeNextPath(requestUrl.searchParams.get("next"));
 
+  logAuthCallback("incoming", {
+    hasCode: Boolean(code),
+    hasTokenHash: Boolean(tokenHash),
+    authErrorCode,
+    authError,
+    authType,
+    otpType,
+    nextPath
+  });
+
   if (authError || authErrorCode) {
+    logAuthCallback("supabase-error-param", {
+      authErrorCode,
+      authError,
+      authType
+    });
+
     if (authErrorCode === "otp_expired") {
       return buildLoginErrorRedirect(request, "magic-link-expired");
     }
@@ -83,6 +105,11 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
+      logAuthCallback("exchangeCodeForSession-error", {
+        code: error.code,
+        message: error.message
+      });
+
       return buildLoginErrorRedirect(
         request,
         error.code === "otp_expired" ? "magic-link-expired" : "auth-exchange-failed"
@@ -95,11 +122,24 @@ export async function GET(request: NextRequest) {
     });
 
     if (error) {
+      logAuthCallback("verifyOtp-error", {
+        code: error.code,
+        message: error.message,
+        authType: otpType
+      });
+
       return buildLoginErrorRedirect(
         request,
         error.code === "otp_expired" ? "magic-link-expired" : "auth-exchange-failed"
       );
     }
+  } else {
+    logAuthCallback("missing-auth-params", {
+      hasCode: Boolean(code),
+      hasTokenHash: Boolean(tokenHash),
+      authType,
+      otpType
+    });
   }
 
   const {
@@ -107,15 +147,31 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user?.email) {
+    logAuthCallback("missing-user-after-exchange", {
+      hasCode: Boolean(code),
+      hasTokenHash: Boolean(tokenHash),
+      authType
+    });
+
     return buildLoginErrorRedirect(request, "auth-exchange-failed");
   }
 
   if (!isEmailVerified(user)) {
+    logAuthCallback("user-not-verified", {
+      authType,
+      email: user.email
+    });
+
     await supabase.auth.signOut();
     return buildLoginErrorRedirect(request, "email-not-verified");
   }
 
   if (!canAccessProtectedAppRoutes(user)) {
+    logAuthCallback("user-not-authorized", {
+      authType,
+      email: user.email
+    });
+
     await supabase.auth.signOut();
     return buildLoginErrorRedirect(request, "not-authorized");
   }
@@ -136,9 +192,20 @@ export async function GET(request: NextRequest) {
     );
 
     if (profileNeedsSetup(profile)) {
+      logAuthCallback("profile-setup-required", {
+        authType,
+        email: user.email
+      });
+
       return NextResponse.redirect(new URL("/profile/setup", request.url));
     }
-  } catch {
+  } catch (error) {
+    logAuthCallback("profile-bootstrap-error", {
+      authType,
+      email: user.email,
+      message: error instanceof Error ? error.message : "unknown"
+    });
+
     await supabase.auth.signOut();
     return buildLoginErrorRedirect(request, "profile-setup-failed");
   }

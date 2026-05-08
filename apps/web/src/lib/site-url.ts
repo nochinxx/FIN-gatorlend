@@ -34,5 +34,5 @@ export function getSiteUrl(): string {
 
 export function getAuthCallbackUrl(nextPath = "/marketplace"): string {
   const safeNextPath = sanitizeNextPath(nextPath);
-  return `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(safeNextPath)}`;
+  return `${getSiteUrl()}/auth/confirm?next=${encodeURIComponent(safeNextPath)}`;
 }

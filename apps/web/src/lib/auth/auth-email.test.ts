@@ -37,7 +37,7 @@ describe("auth email helpers", () => {
       email: "student@sfsu.edu",
       password: "password123",
       options: {
-        emailRedirectTo: "https://fin-gatorlend.com/auth/callback?next=%2Fprofile%2Fsetup"
+        emailRedirectTo: "https://fin-gatorlend.com/auth/confirm?next=%2Fprofile%2Fsetup"
       }
     });
   });
@@ -56,7 +56,7 @@ describe("auth email helpers", () => {
     );
 
     expect(resetPasswordForEmail).toHaveBeenCalledWith("student@sfsu.edu", {
-      redirectTo: "https://fin-gatorlend.com/auth/callback?next=%2Fauth%2Freset-password"
+      redirectTo: "https://fin-gatorlend.com/auth/confirm?next=%2Fauth%2Freset-password"
     });
   });
 
