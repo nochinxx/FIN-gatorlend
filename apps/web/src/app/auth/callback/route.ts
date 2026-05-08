@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 import {
   canAccessProtectedAppRoutes,
@@ -31,12 +32,28 @@ function buildLoginErrorRedirect(
   return NextResponse.redirect(redirectUrl);
 }
 
+function getOtpType(type: string | null): EmailOtpType | null {
+  switch (type) {
+    case "signup":
+    case "invite":
+    case "magiclink":
+    case "recovery":
+    case "email":
+    case "email_change":
+      return type;
+    default:
+      return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const tokenHash = requestUrl.searchParams.get("token_hash");
   const authErrorCode = requestUrl.searchParams.get("error_code");
   const authError = requestUrl.searchParams.get("error");
   const authType = requestUrl.searchParams.get("type");
+  const otpType = getOtpType(authType);
   const nextPath = sanitizeNextPath(requestUrl.searchParams.get("next"));
 
   if (authError || authErrorCode) {
@@ -64,6 +81,18 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      return buildLoginErrorRedirect(
+        request,
+        error.code === "otp_expired" ? "magic-link-expired" : "auth-exchange-failed"
+      );
+    }
+  } else if (tokenHash && otpType) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: otpType
+    });
 
     if (error) {
       return buildLoginErrorRedirect(
