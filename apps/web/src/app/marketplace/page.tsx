@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import { listProfilesByIds } from "@/lib/auth/profile";
+import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
 import { listMarketplaceListings } from "@/lib/marketplace/server";
 import {
   PUBLIC_ASSET_TYPE_LABELS,
@@ -47,6 +49,10 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   const assetTypeFilter = resolvedSearchParams.asset_type ?? "";
   const listingTypeFilter = resolvedSearchParams.listing_type ?? "";
   const listings = await listMarketplaceListings();
+  const ownerProfiles = await listProfilesByIds([
+    ...new Set(listings.map((listing) => listing.owner_user_id))
+  ]);
+  const ownerProfilesById = new Map(ownerProfiles.map((profile) => [profile.id, profile]));
   const filteredListings = listings.filter((listing) => {
     if (assetTypeFilter && listing.asset_type !== assetTypeFilter) {
       return false;
@@ -140,6 +146,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           filteredListings.map((listing) => {
             const badge = getListingBadge(listing);
             const imageSrc = resolveMarketplaceImage(listing.image_url);
+            const ownerLabel = getProfileIdentityLabel(ownerProfilesById.get(listing.owner_user_id));
 
             return (
               <article key={listing.id} style={{ padding: "1.15rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
@@ -178,7 +185,9 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                       </div>
                     </div>
                     <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
+                      <p style={{ margin: 0, color: "#4a4a4a" }}>Owner: {ownerLabel}</p>
                       <p style={{ margin: 0, color: "#4a4a4a" }}>Status: {listing.status}</p>
+                      <p style={{ margin: 0, color: "#4a4a4a" }}>Tokenization: {listing.tokenization_status}</p>
                       <p style={{ margin: 0, color: "#4a4a4a" }}>
                         Exchange preferences: {listing.payment_methods?.length ? listing.payment_methods.join(", ") : "Flexible"}
                       </p>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { listProfilesByIds } from "@/lib/auth/profile";
+import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
 import {
   getListingRequestsForUser,
   getMarketplaceListingById,
@@ -49,6 +51,10 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
   const currentUser = await requireMarketplaceUser();
   const ownerProfile = await getMarketplaceProfile(listing.owner_user_id);
   const requests = await getListingRequestsForUser(listing.id!);
+  const requesterProfiles = await listProfilesByIds([
+    ...new Set(requests.map((request) => request.requester_user_id))
+  ]);
+  const requesterProfilesById = new Map(requesterProfiles.map((profile) => [profile.id, profile]));
   const isOwner = currentUser.id === listing.owner_user_id;
   const relatedRequest = requests.find((request) => request.requester_user_id === currentUser.id);
   const imageSrc = resolveMarketplaceImage(listing.image_url);
@@ -126,11 +132,14 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
             </div>
 
             <div style={{ marginTop: "1rem", display: "grid", gap: "0.5rem" }}>
-              <p style={{ margin: 0 }}><strong>Owner:</strong> {ownerProfile?.display_name || ownerProfile?.email || "Verified student"}</p>
+              <p style={{ margin: 0 }}><strong>Owner:</strong> {getProfileIdentityLabel(ownerProfile)}</p>
               <p style={{ margin: 0 }}><strong>Status:</strong> {listing.status}</p>
               <p style={{ margin: 0 }}><strong>Tokenization:</strong> {listing.tokenization_status}</p>
-              <p style={{ margin: 0 }}><strong>Mock token:</strong> {listing.mock_token_id ?? "Not assigned"}</p>
-              <p style={{ margin: 0 }}><strong>XRPL token:</strong> {listing.xrpl_token_id ?? "Not minted"}</p>
+              <p style={{ margin: 0 }}><strong>Mock asset ID:</strong> {listing.mock_token_id ?? "Not assigned"}</p>
+              <p style={{ margin: 0 }}><strong>XRPL token ID:</strong> {listing.xrpl_token_id ?? "Not minted"}</p>
+              {listing.owner_wallet ? (
+                <p style={{ margin: 0 }}><strong>Wallet:</strong> {listing.owner_wallet}</p>
+              ) : null}
               <p style={{ margin: 0 }}><strong>Exchange preferences:</strong> {listing.payment_methods?.join(", ") || "Flexible"}</p>
               <p style={{ margin: 0 }}><strong>Condition:</strong> {listing.condition || "Not specified"}</p>
             </div>
@@ -199,7 +208,7 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
               <article key={request.id} style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                   <div>
-                    <p style={{ margin: 0 }}><strong>Requester:</strong> {request.requester_user_id}</p>
+                    <p style={{ margin: 0 }}><strong>Requester:</strong> {getProfileIdentityLabel(requesterProfilesById.get(request.requester_user_id))}</p>
                     <p style={{ margin: "0.35rem 0 0" }}><strong>Status:</strong> {request.status}</p>
                     {request.message ? <p style={{ margin: "0.35rem 0 0" }}><strong>Message:</strong> {request.message}</p> : null}
                     {request.payment_method ? <p style={{ margin: "0.35rem 0 0" }}><strong>Exchange note:</strong> {request.payment_method}</p> : null}

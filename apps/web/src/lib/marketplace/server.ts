@@ -6,48 +6,46 @@ import {
   listingRequestSchema,
   listingSchema,
   ownershipEventSchema,
-  type CreateListingInput,
   type Listing,
   type ListingRequest
 } from "@gatorlend/core";
 
-import { canAccessMarketplaceRoutes } from "@/lib/auth/access";
-import { ensureAuthProfile } from "@/lib/auth/profile";
+import {
+  getCurrentMarketplaceActor,
+  getProfileById
+} from "@/lib/auth/profile";
+import { type Profile } from "@/lib/auth/profile-schema";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import {
-  acceptListingRequest,
-  assertCanRequestListing,
   buildMockOwnershipEvent,
-  completeListingTransfer,
   declineListingRequest,
   reserveListingForAcceptedRequest,
   transferListingOwnership
 } from "./transitions";
+import {
+  assertCanAcceptRequestForProfile,
+  assertCanCompleteTransferForProfile,
+  assertCanCreateListingForProfile,
+  assertCanRequestListingForProfile
+} from "./guards";
 
-type AuthenticatedMarketplaceUser = {
+export type AuthenticatedMarketplaceUser = {
   id: string;
   email: string;
 };
 
+export type ListingSummary = {
+  listing: Listing;
+  pendingRequestCount: number;
+};
+
 export async function requireMarketplaceUser(): Promise<AuthenticatedMarketplaceUser> {
-  const supabase = await createSupabaseServerAuthClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user?.email || !canAccessMarketplaceRoutes(user.email)) {
-    throw new Error("Marketplace actions require a logged-in SFSU user.");
-  }
-
+  const { user } = await getCurrentMarketplaceActor();
   return {
     id: user.id,
     email: user.email
   };
-}
-
-async function ensureProfile(user: AuthenticatedMarketplaceUser) {
-  await ensureAuthProfile(user);
 }
 
 function createMockTokenId() {
@@ -55,22 +53,23 @@ function createMockTokenId() {
 }
 
 export async function createListing(rawInput: unknown): Promise<Listing> {
-  const currentUser = await requireMarketplaceUser();
-  await ensureProfile(currentUser);
+  const { user, profile } = await getCurrentMarketplaceActor();
+  assertCanCreateListingForProfile(profile);
   const supabase = await createSupabaseServerAuthClient();
   const rawInputRecord =
     rawInput && typeof rawInput === "object" ? (rawInput as Record<string, unknown>) : {};
   const input = createListingInputSchema.parse({
     ...rawInputRecord,
-    owner_user_id: currentUser.id
+    owner_user_id: user.id
   });
 
   const insertPayload = listingSchema.parse({
     ...input,
-    owner_user_id: currentUser.id,
+    owner_user_id: user.id,
     status: "active",
     tokenization_status: "mock_tokenized",
-    mock_token_id: createMockTokenId()
+    mock_token_id: createMockTokenId(),
+    owner_wallet: input.owner_wallet ?? null
   });
 
   const { data, error } = await supabase.from("listings").insert(insertPayload).select("*").single();
@@ -83,7 +82,7 @@ export async function createListing(rawInput: unknown): Promise<Listing> {
 }
 
 export async function listMarketplaceListings(): Promise<Listing[]> {
-  await ensureProfile(await requireMarketplaceUser());
+  await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const { data, error } = await supabase
     .from("listings")
@@ -99,7 +98,7 @@ export async function listMarketplaceListings(): Promise<Listing[]> {
 }
 
 export async function getMarketplaceListingById(id: string): Promise<Listing | null> {
-  await ensureProfile(await requireMarketplaceUser());
+  await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const { data, error } = await supabase.from("listings").select("*").eq("id", id).maybeSingle();
 
@@ -114,35 +113,19 @@ export async function getMarketplaceListingById(id: string): Promise<Listing | n
   return listingSchema.parse(data);
 }
 
-export async function getMarketplaceProfile(userId: string): Promise<{
-  id: string;
-  email: string;
-  display_name: string | null;
-} | null> {
-  await ensureProfile(await requireMarketplaceUser());
-  const supabase = await createSupabaseServerAuthClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, display_name")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Failed to load profile: ${error.message}`);
-  }
-
-  return data;
+export async function getMarketplaceProfile(userId: string): Promise<Profile | null> {
+  await getCurrentMarketplaceActor();
+  return getProfileById(userId);
 }
 
 export async function getListingRequestsForUser(listingId: string): Promise<ListingRequest[]> {
-  const currentUser = await requireMarketplaceUser();
-  await ensureProfile(currentUser);
+  const { user } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const { data, error } = await supabase
     .from("listing_requests")
     .select("*")
     .eq("listing_id", listingId)
-    .or(`owner_user_id.eq.${currentUser.id},requester_user_id.eq.${currentUser.id}`)
+    .or(`owner_user_id.eq.${user.id},requester_user_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -152,14 +135,58 @@ export async function getListingRequestsForUser(listingId: string): Promise<List
   return (data ?? []).map((row) => listingRequestSchema.parse(row));
 }
 
+export async function listCurrentUserListings(): Promise<ListingSummary[]> {
+  const { user } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const { data: listings, error: listingsError } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("owner_user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (listingsError) {
+    throw new Error(`Failed to load your listings: ${listingsError.message}`);
+  }
+
+  const parsedListings = (listings ?? []).map((row) => listingSchema.parse(row));
+  const listingIds = parsedListings.flatMap((listing) => (listing.id ? [listing.id] : []));
+
+  if (listingIds.length === 0) {
+    return [];
+  }
+
+  const { data: requests, error: requestsError } = await supabase
+    .from("listing_requests")
+    .select("listing_id, status")
+    .in("listing_id", listingIds);
+
+  if (requestsError) {
+    throw new Error(`Failed to load your listing requests: ${requestsError.message}`);
+  }
+
+  const pendingCounts = new Map<string, number>();
+
+  for (const request of requests ?? []) {
+    if (request.status !== "pending") {
+      continue;
+    }
+
+    pendingCounts.set(request.listing_id, (pendingCounts.get(request.listing_id) ?? 0) + 1);
+  }
+
+  return parsedListings.map((listing) => ({
+    listing,
+    pendingRequestCount: listing.id ? pendingCounts.get(listing.id) ?? 0 : 0
+  }));
+}
+
 export async function requestListing(
   listingId: string,
   message?: string,
   paymentMethod?: string,
   handoffLocation?: string
 ): Promise<ListingRequest> {
-  const currentUser = await requireMarketplaceUser();
-  await ensureProfile(currentUser);
+  const { user, profile } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const listing = await getMarketplaceListingById(listingId);
 
@@ -167,7 +194,7 @@ export async function requestListing(
     throw new Error("Listing not found.");
   }
 
-  assertCanRequestListing(listing, currentUser.id);
+  assertCanRequestListingForProfile(profile, listing, user.id);
 
   const input = createListingRequestInputSchema.parse({
     listing_id: listingId,
@@ -179,7 +206,7 @@ export async function requestListing(
   const insertPayload = listingRequestSchema.parse({
     ...input,
     owner_user_id: listing.owner_user_id,
-    requester_user_id: currentUser.id,
+    requester_user_id: user.id,
     status: "pending"
   });
 
@@ -208,8 +235,7 @@ async function getRequestById(requestId: string): Promise<ListingRequest> {
 }
 
 export async function acceptRequest(requestId: string): Promise<ListingRequest> {
-  const currentUser = await requireMarketplaceUser();
-  await ensureProfile(currentUser);
+  const { user, profile } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const request = await getRequestById(requestId);
   const listing = await getMarketplaceListingById(request.listing_id);
@@ -218,10 +244,9 @@ export async function acceptRequest(requestId: string): Promise<ListingRequest> 
     throw new Error("Listing not found.");
   }
 
-  const nextRequest = acceptListingRequest(request, currentUser.id);
-  const nextListing = reserveListingForAcceptedRequest(listing, currentUser.id);
+  const nextRequest = assertCanAcceptRequestForProfile(profile, request, user.id);
+  const nextListing = reserveListingForAcceptedRequest(listing, user.id);
 
-  // TODO: wrap these writes in a DB transaction or RPC if the workflow grows more complex.
   const { error: requestError } = await supabase
     .from("listing_requests")
     .update({
@@ -249,11 +274,10 @@ export async function acceptRequest(requestId: string): Promise<ListingRequest> 
 }
 
 export async function declineRequest(requestId: string): Promise<ListingRequest> {
-  const currentUser = await requireMarketplaceUser();
-  await ensureProfile(currentUser);
+  const { user } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const request = await getRequestById(requestId);
-  const nextRequest = declineListingRequest(request, currentUser.id);
+  const nextRequest = declineListingRequest(request, user.id);
 
   const { error } = await supabase
     .from("listing_requests")
@@ -273,8 +297,7 @@ export async function completeTransfer(requestId: string): Promise<{
   request: ListingRequest;
   listing: Listing;
 }> {
-  const currentUser = await requireMarketplaceUser();
-  await ensureProfile(currentUser);
+  const { user, profile } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
   const request = await getRequestById(requestId);
   const listing = await getMarketplaceListingById(request.listing_id);
@@ -283,11 +306,10 @@ export async function completeTransfer(requestId: string): Promise<{
     throw new Error("Listing not found.");
   }
 
-  const nextRequest = completeListingTransfer(request, currentUser.id);
-  const nextListing = transferListingOwnership(listing, currentUser.id, request.requester_user_id);
+  const nextRequest = assertCanCompleteTransferForProfile(profile, request, user.id);
+  const nextListing = transferListingOwnership(listing, user.id, request.requester_user_id);
   const ownershipEvent = ownershipEventSchema.parse(buildMockOwnershipEvent(listing, request));
 
-  // TODO: move these three writes into a DB transaction or RPC for stronger atomicity.
   const { error: requestError } = await supabase
     .from("listing_requests")
     .update({

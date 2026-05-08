@@ -58,18 +58,25 @@ Deployment caveats:
 - The server-side XRPL validation/finalization path uses JSON-RPC HTTP requests, which is compatible with Vercel serverless execution. It does not depend on maintaining a websocket connection on the server.
 - The catalog and detail pages are intentionally dynamic because they depend on live Supabase and XRPL-backed state.
 
-## Demo Auth
+## Auth
 
-The deployed demo can be restricted with Supabase Auth email magic links plus a hardcoded allowlist in
-[`apps/web/src/lib/auth/allowlist.ts`](/Users/mariojillesca/Code/FIN-gatorlend/apps/web/src/lib/auth/allowlist.ts).
+GatorLend now uses Supabase Auth for email/password signup, one-time email confirmation, password
+login, password reset, and sessions. Access is limited to verified `@sfsu.edu` email users during
+the pilot. Wallet connection stays optional and separate from auth.
 
 Protected routes:
 
+- `/marketplace`
+- `/listings/new`
+- `/listings/[id]`
+- `/profile`
+- `/profile/setup`
+- `/my-listings`
 - `/catalog`
 - `/textbooks/new`
 - `/assets/[id]`
 
-Supabase dashboard configuration for magic links:
+Supabase Dashboard configuration:
 
 - Site URL:
   `https://YOUR_VERCEL_DOMAIN`
@@ -78,8 +85,11 @@ Supabase dashboard configuration for magic links:
   `https://YOUR_VERCEL_DOMAIN/auth/callback`
   `https://YOUR-PREVIEW-DOMAIN.vercel.app/auth/callback`
 
-If you use Vercel preview URLs, add each preview callback URL you expect to use, or use your stable
-demo domain as the primary Site URL.
+Resend SMTP is configured in the Supabase Dashboard, not in the app. After a verified user logs in,
+the app bootstraps a `profiles` row if needed and requires a unique username before core
+marketplace actions are allowed.
+
+See [`docs/auth.md`](/Users/mariojillesca/Code/FIN-gatorlend/docs/auth.md) for the full flow.
 
 ## Guardrails
 
@@ -113,7 +123,8 @@ The shared model now supports broader marketplace asset types, while XRPL mintin
 - Marketplace route at `/marketplace`
 - Listing creation at `/listings/new`
 - Listing detail and request flow at `/listings/[id]`
-- `@sfsu.edu` login first, wallet optional
+- `@sfsu.edu` email/password login first, wallet optional
+- unique username required before core marketplace actions
 - mock-tokenized listings by default
 - request / accept / decline / complete transfer lifecycle inside Supabase
 - ownership transfer tracked off-chain for now

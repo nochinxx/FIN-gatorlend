@@ -19,6 +19,15 @@ function parseOptionalNumber(value: FormDataEntryValue | null): number | null {
   return parsed;
 }
 
+function parseOptionalText(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+  return trimmedValue ? trimmedValue : null;
+}
+
 function parseMetadata(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || value.trim() === "") {
     return {};
@@ -46,11 +55,11 @@ export async function createListingAction(
       asset_type: String(formData.get("asset_type") ?? ""),
       listing_type: String(formData.get("listing_type") ?? ""),
       title: String(formData.get("title") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      condition: String(formData.get("condition") ?? ""),
-      image_url: String(formData.get("image_url") ?? ""),
+      description: parseOptionalText(formData.get("description")),
+      condition: parseOptionalText(formData.get("condition")),
+      image_url: parseOptionalText(formData.get("image_url")),
       price_amount: parseOptionalNumber(formData.get("price_amount")),
-      price_type: String(formData.get("price_type") ?? ""),
+      price_type: parseOptionalText(formData.get("price_type")),
       payment_methods: String(formData.get("payment_methods") ?? "")
         .split(",")
         .map((value) => value.trim())
@@ -73,5 +82,6 @@ export async function createListingAction(
   }
 
   revalidatePath("/marketplace");
+  revalidatePath("/my-listings");
   redirect(`/listings/${listingId}`);
 }

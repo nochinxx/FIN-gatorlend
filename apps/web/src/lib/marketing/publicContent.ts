@@ -1,13 +1,13 @@
 export const LANDING_HERO_TITLE = "Student Exchange Pilot. Tokenization Ready.";
 
 export const LANDING_HERO_BODY =
-  "GatorLend is a student-built pilot for verified school-email users to explore how everyday academic items can be listed, requested, and tracked. Wallets are not required for normal use, while XRPL testnet minting remains available as an optional verification layer for selected assets.";
+  "GatorLend is an independent student-built pilot for verified school-email users to explore how everyday academic items can be listed, requested, and tracked. Wallets are not required for normal use, while XRPL testnet minting remains available as an optional verification layer for selected assets.";
 
 export const PILOT_DISCLAIMER =
-  "GatorLend is an independent student-built pilot. It is not an official marketplace of San Francisco State University, the CSU system, or any campus department. The platform does not process payments, hold funds, guarantee items, or manage disputes.";
+  "GatorLend is an independent student-built pilot. It is not endorsed by SFSU or CSU. The platform verifies control of an @sfsu.edu email for pilot access only, does not process payments or hold funds, and does not guarantee items or manage disputes.";
 
 export const FOOTER_DISCLAIMER =
-  "Independent student-built pilot. Not affiliated with, sponsored by, or endorsed by San Francisco State University or the CSU system. GatorLend does not process payments, custody funds, guarantee listings, or manage disputes.";
+  "Independent student-built pilot for verified school-email users. Not affiliated with, sponsored by, or endorsed by SFSU or CSU. GatorLend does not process payments or hold funds, guarantee listings, or manage disputes.";
 
 export const CURRENT_MVP_LINE =
   "Current MVP: school-email access, mock listings, request flow, and internal ownership tracking.";
@@ -19,7 +19,7 @@ export const LANDING_HOW_IT_WORKS = [
   {
     title: "Sign in with a verified school email",
     description:
-      "Students access the pilot through email-based authentication. Wallet connection is not required for normal usage."
+      "Pilot users access GatorLend through verified school-email authentication. Wallet connection is not required for normal usage."
   },
   {
     title: "Create a demo listing",

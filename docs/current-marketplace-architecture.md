@@ -27,10 +27,12 @@ That older slice remains intact and should not be broken while the market-first 
 
 ## Auth Model
 
-- Supabase Auth magic link login
-- protected routes require an authenticated user
-- `@sfsu.edu` is the primary domain gate
-- the existing allowlist remains as a compatibility fallback
+- Supabase Auth email/password signup and login
+- email confirmation is required before protected access
+- protected routes require an authenticated, verified `@sfsu.edu` user
+- profiles bootstrap after confirmed login
+- a unique username is required before core marketplace actions
+- wallet connection remains optional and separate from auth
 
 ## Marketplace Data Model
 

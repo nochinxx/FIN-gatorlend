@@ -32,6 +32,7 @@ export async function requestListingAction(formData: FormData) {
       String(formData.get("handoff_location") ?? "")
     );
     revalidatePath(`/listings/${listingId}`);
+    revalidatePath("/my-listings");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to request listing.";
     destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
@@ -48,6 +49,7 @@ export async function acceptRequestAction(formData: FormData) {
   try {
     await acceptRequest(requestId);
     revalidatePath(`/listings/${listingId}`);
+    revalidatePath("/my-listings");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to accept request.";
     destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
@@ -64,6 +66,7 @@ export async function declineRequestAction(formData: FormData) {
   try {
     await declineRequest(requestId);
     revalidatePath(`/listings/${listingId}`);
+    revalidatePath("/my-listings");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to decline request.";
     destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
@@ -81,6 +84,7 @@ export async function completeTransferAction(formData: FormData) {
     await completeTransfer(requestId);
     revalidatePath(`/listings/${listingId}`);
     revalidatePath("/marketplace");
+    revalidatePath("/my-listings");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to complete transfer.";
     destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;

@@ -31,7 +31,7 @@ const finalizeTextbookMintInputSchema = createTextbookInputSchema.extend({
   xrpl_transaction_hash: z.string().min(1)
 });
 
-export type CreateTextbookInput = typeof createTextbookInputSchema._type;
+export type CreateTextbookInput = z.infer<typeof createTextbookInputSchema>;
 export type FinalizeTextbookMintInput = z.infer<typeof finalizeTextbookMintInputSchema>;
 
 export async function createTextbookAsset(

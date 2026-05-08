@@ -4,6 +4,7 @@ import {
   canStartAuthFlow,
   canAccessMarketplaceRoutes,
   canAccessProtectedAppRoutes,
+  isEmailVerified,
   isSfsuEmail
 } from "./access";
 
@@ -31,36 +32,39 @@ describe("isSfsuEmail", () => {
   });
 });
 
-describe("canAccessProtectedAppRoutes", () => {
-  it("allows sfsu emails", () => {
-    expect(canAccessProtectedAppRoutes("student@sfsu.edu")).toBe(true);
-  });
-
-  it("still allows legacy allowlisted emails", () => {
-    expect(canAccessProtectedAppRoutes("mariojillesca@gmail.com")).toBe(true);
-  });
-});
-
-describe("canAccessMarketplaceRoutes", () => {
-  it("allows sfsu emails", () => {
-    expect(canAccessMarketplaceRoutes("student@sfsu.edu")).toBe(true);
-  });
-
-  it("rejects legacy allowlist-only gmail access", () => {
-    expect(canAccessMarketplaceRoutes("mariojillesca@gmail.com")).toBe(false);
-  });
-});
-
 describe("canStartAuthFlow", () => {
-  it("allows sfsu emails", () => {
+  it("allows valid @sfsu.edu emails", () => {
     expect(canStartAuthFlow("student@sfsu.edu")).toBe(true);
-  });
-
-  it("allows legacy allowlisted emails", () => {
-    expect(canStartAuthFlow("mariojillesca@gmail.com")).toBe(true);
   });
 
   it("rejects unrelated emails", () => {
     expect(canStartAuthFlow("someone@gmail.com")).toBe(false);
+  });
+});
+
+describe("verified access checks", () => {
+  const verifiedUser = {
+    email: "student@sfsu.edu",
+    email_confirmed_at: "2026-05-07T00:00:00.000Z"
+  };
+
+  const unverifiedUser = {
+    email: "student@sfsu.edu",
+    email_confirmed_at: null
+  };
+
+  it("marks verified users as verified", () => {
+    expect(isEmailVerified(verifiedUser)).toBe(true);
+  });
+
+  it("blocks unverified users", () => {
+    expect(isEmailVerified(unverifiedUser)).toBe(false);
+    expect(canAccessMarketplaceRoutes(unverifiedUser)).toBe(false);
+    expect(canAccessProtectedAppRoutes(unverifiedUser)).toBe(false);
+  });
+
+  it("allows verified @sfsu.edu users", () => {
+    expect(canAccessMarketplaceRoutes(verifiedUser)).toBe(true);
+    expect(canAccessProtectedAppRoutes(verifiedUser)).toBe(true);
   });
 });

@@ -3,6 +3,8 @@ import Image from "next/image";
 
 import { BrandLogo } from "@/components/BrandLogo";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { profileNeedsSetup } from "@/lib/auth/profile-schema";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import { LoginForm } from "./LoginForm";
@@ -11,15 +13,44 @@ type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
     next?: string;
+    notice?: string;
   }>;
 };
 
 function sanitizeNextPath(nextPath: string | undefined): string {
   if (!nextPath || !nextPath.startsWith("/")) {
-    return "/catalog";
+    return "/marketplace";
   }
 
   return nextPath;
+}
+
+function getMessageFromParams(error: string | undefined, notice: string | undefined) {
+  if (error === "not-authorized") {
+    return "Use a verified @sfsu.edu email to access GatorLend during the pilot.";
+  }
+
+  if (error === "email-not-verified") {
+    return "Please verify your school email before accessing GatorLend.";
+  }
+
+  if (error === "profile-setup-failed") {
+    return "Your sign-in succeeded, but profile setup could not be completed. Try again.";
+  }
+
+  if (error === "magic-link-expired") {
+    return "That verification or recovery link has expired. Request a new one and use the latest email only once.";
+  }
+
+  if (error === "auth-exchange-failed") {
+    return "The Supabase auth callback could not be completed. Request a fresh email and try again.";
+  }
+
+  if (notice === "password-updated") {
+    return "Your password has been updated. Log in with the new password.";
+  }
+
+  return null;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -30,14 +61,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (canAccessProtectedAppRoutes(user?.email)) {
+  if (canAccessProtectedAppRoutes(user)) {
+    const profile = await getCurrentUserProfile();
+
+    if (profileNeedsSetup(profile)) {
+      redirect("/profile/setup");
+    }
+
     redirect(nextPath);
   }
 
-  const notAuthorized = resolvedSearchParams.error === "not-authorized";
-  const profileSetupFailed = resolvedSearchParams.error === "profile-setup-failed";
-  const magicLinkExpired = resolvedSearchParams.error === "magic-link-expired";
-  const authExchangeFailed = resolvedSearchParams.error === "auth-exchange-failed";
+  const message = getMessageFromParams(resolvedSearchParams.error, resolvedSearchParams.notice);
 
   return (
     <main
@@ -51,7 +85,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <section
         style={{
           width: "100%",
-          maxWidth: 520,
+          maxWidth: 620,
           padding: "2rem",
           borderRadius: 24,
           background: "#ffffff",
@@ -75,33 +109,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             color: "#666666"
           }}
         >
-          Demo access
+          Independent student-built pilot
         </p>
         <h1 style={{ margin: "0.75rem 0 0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
-          Sign in for the protected demo routes
+          Sign up or log in with your school email
         </h1>
         <p style={{ lineHeight: 1.6, textAlign: "center", color: "#4f4f4f" }}>
-          Use an `@sfsu.edu` email to receive a Supabase magic link. Protected pages are blocked
-          server-side until the session is valid and the user is allowed into the marketplace.
+          Access is limited to verified school-email users during the pilot. This checks control of
+          an `@sfsu.edu` email. GatorLend is an independent student-built pilot and is not endorsed
+          by SFSU or CSU.
         </p>
 
-        {notAuthorized ? (
-          <p
-            style={{
-              margin: "1rem 0",
-              padding: "0.85rem 1rem",
-              borderRadius: 12,
-              background: "#ffe7de",
-              color: "#7f2413",
-              fontWeight: 600,
-              textAlign: "center"
-            }}
-          >
-            Not authorized for demo.
-          </p>
-        ) : null}
-
-        {profileSetupFailed ? (
+        {message ? (
           <p
             style={{
               margin: "1rem 0",
@@ -113,41 +132,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               textAlign: "center"
             }}
           >
-            Sign-in succeeded, but profile setup failed. Apply
-            {" "}`supabase/migrations/0004_fix_profile_bootstrap_rls.sql`{" "}
-            in your Supabase project, then try again.
-          </p>
-        ) : null}
-
-        {magicLinkExpired ? (
-          <p
-            style={{
-              margin: "1rem 0",
-              padding: "0.85rem 1rem",
-              borderRadius: 12,
-              background: "#fff3ef",
-              color: "#7f2413",
-              fontWeight: 600,
-              textAlign: "center"
-            }}
-          >
-            That magic link has expired or is invalid. Request a new one and use the most recent email only once.
-          </p>
-        ) : null}
-
-        {authExchangeFailed ? (
-          <p
-            style={{
-              margin: "1rem 0",
-              padding: "0.85rem 1rem",
-              borderRadius: 12,
-              background: "#fff3ef",
-              color: "#7f2413",
-              fontWeight: 600,
-              textAlign: "center"
-            }}
-          >
-            Magic-link sign-in could not be completed. Request a fresh link and try again.
+            {message}
           </p>
         ) : null}
 

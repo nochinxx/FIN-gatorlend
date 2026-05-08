@@ -1,13 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
+import {
+  canAccessProtectedAppRoutes,
+  isEmailVerified
+} from "@/lib/auth/access";
 import { ensureAuthProfile } from "@/lib/auth/profile";
+import { profileNeedsSetup } from "@/lib/auth/profile-schema";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
 
-function sanitizeNextPath(nextPath: string | null): string {
+function sanitizeNextPath(nextPath: string | null, fallback = "/marketplace"): string {
   if (!nextPath || !nextPath.startsWith("/")) {
-    return "/catalog";
+    return fallback;
   }
 
   return nextPath;
@@ -15,7 +19,12 @@ function sanitizeNextPath(nextPath: string | null): string {
 
 function buildLoginErrorRedirect(
   request: NextRequest,
-  reason: "not-authorized" | "profile-setup-failed" | "magic-link-expired" | "auth-exchange-failed"
+  reason:
+    | "not-authorized"
+    | "email-not-verified"
+    | "profile-setup-failed"
+    | "magic-link-expired"
+    | "auth-exchange-failed"
 ) {
   const redirectUrl = new URL("/login", request.url);
   redirectUrl.searchParams.set("error", reason);
@@ -25,8 +34,9 @@ function buildLoginErrorRedirect(
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const authError = requestUrl.searchParams.get("error");
   const authErrorCode = requestUrl.searchParams.get("error_code");
+  const authError = requestUrl.searchParams.get("error");
+  const authType = requestUrl.searchParams.get("type");
   const nextPath = sanitizeNextPath(requestUrl.searchParams.get("next"));
 
   if (authError || authErrorCode) {
@@ -67,19 +77,41 @@ export async function GET(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (!canAccessProtectedAppRoutes(user?.email)) {
+  if (!user?.email) {
+    return buildLoginErrorRedirect(request, "auth-exchange-failed");
+  }
+
+  if (!isEmailVerified(user)) {
     await supabase.auth.signOut();
-    response = NextResponse.redirect(new URL("/login?error=not-authorized", request.url));
-  } else if (user?.email) {
-    try {
-      await ensureAuthProfile({
+    return buildLoginErrorRedirect(request, "email-not-verified");
+  }
+
+  if (!canAccessProtectedAppRoutes(user)) {
+    await supabase.auth.signOut();
+    return buildLoginErrorRedirect(request, "not-authorized");
+  }
+
+  if (authType === "recovery") {
+    return NextResponse.redirect(new URL("/auth/reset-password", request.url));
+  }
+
+  try {
+    const profile = await ensureAuthProfile(
+      {
         id: user.id,
-        email: user.email
-      }, supabase);
-    } catch {
-      await supabase.auth.signOut();
-      response = NextResponse.redirect(new URL("/login?error=profile-setup-failed", request.url));
+        email: user.email,
+        email_confirmed_at: user.email_confirmed_at ?? user.confirmed_at ?? null,
+        confirmed_at: user.confirmed_at ?? user.email_confirmed_at ?? null
+      },
+      supabase
+    );
+
+    if (profileNeedsSetup(profile)) {
+      return NextResponse.redirect(new URL("/profile/setup", request.url));
     }
+  } catch {
+    await supabase.auth.signOut();
+    return buildLoginErrorRedirect(request, "profile-setup-failed");
   }
 
   return response;

@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { getProfileIdentityLabel, profileNeedsSetup } from "@/lib/auth/profile-schema";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import { BrandLogo } from "./BrandLogo";
@@ -16,6 +19,10 @@ export async function AppHeader() {
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  const canAccessApp = canAccessProtectedAppRoutes(user);
+  const profile = canAccessApp ? await getCurrentUserProfile() : null;
+  const identityLabel = canAccessApp ? getProfileIdentityLabel(profile) : null;
+  const needsSetup = profileNeedsSetup(profile);
 
   return (
     <header
@@ -48,12 +55,25 @@ export async function AppHeader() {
           <Link href="/marketplace" style={navLinkStyle}>
             Marketplace
           </Link>
+          <Link href="/my-listings" style={navLinkStyle}>
+            My Listings
+          </Link>
           <Link href="/catalog" style={navLinkStyle}>
             XRPL Demo
           </Link>
           <Link href="/listings/new" style={navLinkStyle}>
             Create Listing
           </Link>
+          {user ? (
+            <Link href={needsSetup ? "/profile/setup" : "/profile"} style={navLinkStyle}>
+              {needsSetup ? "Finish Profile" : "Profile"}
+            </Link>
+          ) : null}
+          {identityLabel ? (
+            <span style={{ fontSize: 14, color: "#4f4f4f" }}>
+              Signed in as <strong>{identityLabel}</strong>
+            </span>
+          ) : null}
           <Link
             href={user ? "/auth/signout" : "/login"}
             style={{

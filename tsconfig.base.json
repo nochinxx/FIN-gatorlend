@@ -5,6 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@gatorlend/core": ["packages/core/src/index.ts"],
       "@gatorlend/xrpl": ["packages/xrpl/src/index.ts"],
