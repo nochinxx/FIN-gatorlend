@@ -25,6 +25,7 @@ export const runtime = "nodejs";
 function getListingBadge(listing: Awaited<ReturnType<typeof listMarketplaceListings>>[number]) {
   if (listing.xrpl_token_id) {
     return {
+      mobileLabel: "XRPL",
       label: "Minted on XRPL",
       background: "#edf4ff",
       color: "#234f95"
@@ -32,6 +33,7 @@ function getListingBadge(listing: Awaited<ReturnType<typeof listMarketplaceListi
   }
 
   return {
+    mobileLabel: "Off-chain",
     label: "Not minted on-chain",
     background: "#f3f3f3",
     color: "#444444"
@@ -117,6 +119,102 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
 
   return (
     <main style={{ maxWidth: 1080, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>
+      <style>{`
+        .marketplace-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.9rem;
+        }
+        .marketplace-card-link {
+          color: inherit;
+          text-decoration: none;
+        }
+        .marketplace-card {
+          padding: 0.8rem;
+          border-radius: 22px;
+          border: 1px solid #ebebeb;
+          background: #ffffff;
+          display: grid;
+          gap: 0.75rem;
+          height: 100%;
+        }
+        .marketplace-card-image {
+          position: relative;
+          overflow: hidden;
+          border-radius: 18px;
+          border: 1px solid #efefef;
+          background: #f7f7f7;
+          aspect-ratio: 0.9 / 1;
+        }
+        .marketplace-card-badges {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          right: 10px;
+          display: flex;
+          justify-content: space-between;
+          gap: 0.45rem;
+          align-items: start;
+          pointer-events: none;
+        }
+        .marketplace-card-pill {
+          padding: 0.34rem 0.56rem;
+          border-radius: 999px;
+          font-size: 11px;
+          line-height: 1.1;
+          white-space: nowrap;
+          backdrop-filter: blur(8px);
+        }
+        .marketplace-card-title-overlay {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          padding: 2.3rem 0.8rem 0.75rem;
+          background: linear-gradient(to top, rgba(17,17,17,0.72), rgba(17,17,17,0));
+          color: #ffffff;
+        }
+        .marketplace-card-title-mobile {
+          margin: 0;
+          font-size: 0.98rem;
+          line-height: 1.15;
+          letter-spacing: -0.01em;
+        }
+        .marketplace-card-title-desktop {
+          display: none;
+        }
+        .marketplace-card-copy {
+          display: grid;
+          gap: 0.35rem;
+        }
+        .marketplace-card-meta {
+          display: none;
+        }
+        @media (min-width: 900px) {
+          .marketplace-grid {
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+          }
+          .marketplace-card {
+            padding: 1rem;
+            gap: 0.9rem;
+          }
+          .marketplace-card-pill {
+            padding: 0.42rem 0.68rem;
+            font-size: 12px;
+          }
+          .marketplace-card-title-overlay {
+            display: none;
+          }
+          .marketplace-card-title-desktop {
+            display: block;
+          }
+          .marketplace-card-meta {
+            display: grid;
+            gap: 0.35rem;
+          }
+        }
+      `}</style>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12, color: "#666666" }}>
@@ -168,14 +266,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         ))}
       </datalist>
 
-      <section
-        style={{
-          marginTop: "2rem",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: "1rem"
-        }}
-      >
+      <section className="marketplace-grid" style={{ marginTop: "2rem" }}>
         {filteredListings.length === 0 ? (
           <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff", gridColumn: "1 / -1" }}>
             <p style={{ margin: 0 }}>No active listings match the current filters.</p>
@@ -186,20 +277,14 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             const imageSrc = getListingCardImageUrl(listing, listingImagesById.get(listing.id!));
             const ownerLabel = getProfileIdentityLabel(ownerProfilesById.get(listing.owner_user_id));
             const isOwner = listing.owner_user_id === currentUser.id;
+            const priceLabel = listing.price_amount
+              ? `${listing.price_amount} ${listing.price_type ?? ""}`.trim()
+              : null;
 
             return (
-              <article
-                key={listing.id}
-                style={{
-                  padding: "1rem",
-                  borderRadius: 22,
-                  border: "1px solid #ebebeb",
-                  background: "#ffffff",
-                  display: "grid",
-                  gap: "0.9rem"
-                }}
-              >
-                  <div style={{ overflow: "hidden", borderRadius: 18, border: "1px solid #efefef", background: "#f7f7f7", aspectRatio: "1 / 1", position: "relative" }}>
+              <Link key={listing.id} href={`/listings/${listing.id}`} className="marketplace-card-link">
+                <article className="marketplace-card">
+                  <div className="marketplace-card-image">
                     {imageSrc ? (
                       <Image
                         src={imageSrc}
@@ -215,56 +300,63 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                     ) : (
                       <ListingImagePlaceholder />
                     )}
-                  </div>
-                <div style={{ display: "grid", gap: "0.75rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "start" }}>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                        {formatMarketplaceAssetTypeLabel(listing.asset_type)} · {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}
-                      </p>
-                      <h2 style={{ margin: "0.35rem 0 0", fontSize: "1.15rem" }}>{listing.title}</h2>
-                    </div>
-                    <div style={{ padding: "0.45rem 0.7rem", borderRadius: 999, background: badge.background, color: badge.color, fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}>
-                      {badge.label}
-                    </div>
-                  </div>
 
-                  <p style={{ margin: 0, color: "#4b4b4b", lineHeight: 1.6 }}>
-                    {listing.description || "No description added yet."}
-                  </p>
-
-                  <div style={{ display: "grid", gap: "0.35rem", color: "#4a4a4a", fontSize: 14 }}>
-                    <p style={{ margin: 0 }}><strong>Owner:</strong> {ownerLabel}</p>
-                    <p style={{ margin: 0 }}><strong>Status:</strong> {listing.status}</p>
-                    <p style={{ margin: 0 }}><strong>Tokenization:</strong> {formatTokenizationStatus(listing.tokenization_status)}</p>
-                    <p style={{ margin: 0 }}><strong>Price:</strong> {listing.price_amount ? `${listing.price_amount} ${listing.price_type ?? ""}`.trim() : "Price on request"}</p>
-                  </div>
-
-                  <div style={{ marginTop: "0.3rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                    <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
-                      View listing
-                    </Link>
-                    {!isOwner ? (
-                      <Link
-                        href={`/listings/${listing.id}#request-form`}
+                    <div className="marketplace-card-badges">
+                      {priceLabel ? (
+                        <span
+                          className="marketplace-card-pill"
+                          style={{
+                            background: "rgba(255, 255, 255, 0.94)",
+                            color: "#111111",
+                            fontWeight: 700
+                          }}
+                        >
+                          {priceLabel}
+                        </span>
+                      ) : (
+                        <span />
+                      )}
+                      <span
+                        className="marketplace-card-pill"
                         style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: "0.7rem 0.95rem",
-                          borderRadius: 999,
-                          background: "#17331d",
-                          color: "#ffffff",
-                          fontWeight: 700,
-                          textDecoration: "none"
+                          background: badge.background,
+                          color: badge.color,
+                          fontWeight: 600
                         }}
                       >
-                        Send request
-                      </Link>
-                    ) : null}
+                        <span className="desktop-only">{badge.label}</span>
+                        <span className="mobile-only">{badge.mobileLabel}</span>
+                      </span>
+                    </div>
+
+                    <div className="marketplace-card-title-overlay">
+                      <h2 className="marketplace-card-title-mobile">{listing.title}</h2>
+                    </div>
                   </div>
-                </div>
-              </article>
+                  <div className="marketplace-card-copy">
+                    <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      {formatMarketplaceAssetTypeLabel(listing.asset_type)}
+                    </p>
+                    <h2 className="marketplace-card-title-desktop" style={{ margin: 0, fontSize: "1rem", lineHeight: 1.25 }}>{listing.title}</h2>
+                    <div className="marketplace-card-meta">
+                      <p style={{ margin: 0, color: "#4b4b4b", lineHeight: 1.6 }}>
+                        {listing.description || "No description added yet."}
+                      </p>
+                      <div style={{ display: "grid", gap: "0.35rem", color: "#4a4a4a", fontSize: 14 }}>
+                        <p style={{ margin: 0 }}><strong>Type:</strong> {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}</p>
+                        <p style={{ margin: 0 }}><strong>Owner:</strong> {ownerLabel}</p>
+                        <p style={{ margin: 0 }}><strong>Status:</strong> {listing.status}</p>
+                        <p style={{ margin: 0 }}><strong>Tokenization:</strong> {formatTokenizationStatus(listing.tokenization_status)}</p>
+                        {!isOwner ? (
+                          <p style={{ margin: 0, color: "#17331d", fontWeight: 700 }}>
+                            Open listing to send request
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </Link>
             );
           })
         )}
