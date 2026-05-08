@@ -1,16 +1,16 @@
 # FIN GatorLend
 
-XRPL campus tokenization platform scaffold for unique campus assets using XLS-20 NFTs, Next.js, Supabase, and pnpm workspaces.
+GatorLend is a market-first campus item exchange app with optional XRPL testnet verification, built with Next.js, Supabase Auth, Supabase RLS, and pnpm workspaces.
 
 ## Scope
 
-- Public-safe, testnet-only scaffold
-- Wallet adapter boundary with Crossmark as the first target
+- Public-safe, testnet-only implementation
+- Market-first listing and transfer flow that works without wallet login
+- Supabase Auth for signup, email verification, login, reset, and sessions
 - Shared validation schemas in `packages/core`
 - XRPL client and wallet adapters in `packages/xrpl`
-- Supabase migration placeholder with RLS-first notes
-- Shared asset model for `textbook`, `goggles`, and `lab_coat`
-- First UI and minting workflow remains textbooks
+- Shared asset model for `textbook`, `goggles`, `lab_coat`, and broader marketplace records
+- Optional XRPL verification layer for selected textbook assets
 
 ## Workspace Layout
 
@@ -61,8 +61,8 @@ Deployment caveats:
 ## Auth
 
 GatorLend now uses Supabase Auth for email/password signup, one-time email confirmation, password
-login, password reset, and sessions. Access is limited to verified `@sfsu.edu` email users during
-the pilot. Wallet connection stays optional and separate from auth.
+login, password reset, and sessions. Access is limited to verified `@sfsu.edu` email users, with a
+narrow approved-tester override for development. Wallet connection stays optional and separate from auth.
 
 Protected routes:
 
@@ -87,7 +87,8 @@ Supabase Dashboard configuration:
 
 Resend SMTP is configured in the Supabase Dashboard, not in the app. After a verified user logs in,
 the app bootstraps a `profiles` row if needed and requires a unique username before core
-marketplace actions are allowed.
+marketplace actions are allowed. Auth email redirects now go through `/auth/confirm`, and any
+tester override must be reflected in matching Supabase RLS migrations.
 
 See [`docs/auth.md`](/Users/mariojillesca/Code/FIN-gatorlend/docs/auth.md) for the full flow.
 
@@ -123,9 +124,9 @@ The shared model now supports broader marketplace asset types, while XRPL mintin
 - Marketplace route at `/marketplace`
 - Listing creation at `/listings/new`
 - Listing detail and request flow at `/listings/[id]`
-- `@sfsu.edu` email/password login first, wallet optional
+- verified `@sfsu.edu` email/password login first, wallet optional
 - unique username required before core marketplace actions
-- mock-tokenized listings by default
+- default listings create internal records without requiring XRPL minting
 - request / accept / decline / complete transfer lifecycle inside Supabase
 - ownership transfer tracked off-chain for now
 - payment remains external

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { MIN_PASSWORD_LENGTH, validatePassword } from "@/lib/auth/password";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export function ResetPasswordForm() {
@@ -18,9 +19,7 @@ export function ResetPasswordForm() {
     setIsSubmitting(true);
 
     try {
-      if (!password) {
-        throw new Error("Password is required.");
-      }
+      validatePassword(password);
 
       if (password !== confirmPassword) {
         throw new Error("Password and confirm password must match.");
@@ -53,6 +52,7 @@ export function ResetPasswordForm() {
         <input
           type="password"
           required
+          minLength={MIN_PASSWORD_LENGTH}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
@@ -64,6 +64,7 @@ export function ResetPasswordForm() {
         <input
           type="password"
           required
+          minLength={MIN_PASSWORD_LENGTH}
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
           style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}

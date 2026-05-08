@@ -5,6 +5,7 @@ import {
   getAuthEmailErrorMessage,
   sendSignupVerificationEmail
 } from "@/lib/auth/auth-email";
+import { validatePassword } from "@/lib/auth/password";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -16,10 +17,21 @@ export async function POST(request: Request) {
   const email = body.email?.trim().toLowerCase() ?? "";
   const password = body.password ?? "";
 
-  if (!canStartAuthFlow(email) || !password) {
+  if (!canStartAuthFlow(email)) {
     return NextResponse.json(
       {
         error: "Unable to send verification email. Please try again in a few minutes."
+      },
+      { status: 400 }
+    );
+  }
+
+  try {
+    validatePassword(password);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Unable to create account."
       },
       { status: 400 }
     );

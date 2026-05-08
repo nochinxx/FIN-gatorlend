@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Image from "next/image";
 
 import { BrandLogo } from "@/components/BrandLogo";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
@@ -96,22 +95,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
           <BrandLogo size="login" priority />
         </div>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
-          <Image src="/branding/fin-globe-black.png" alt="FIN globe" width={22} height={22} />
-        </div>
-        <p
-          style={{
-            margin: 0,
-            textTransform: "uppercase",
-            letterSpacing: "0.16em",
-            fontSize: 12,
-            textAlign: "center",
-            color: "#666666"
-          }}
-        >
-          Independent student-built pilot
-        </p>
-        <h1 style={{ margin: "0.75rem 0 0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
+        <h1 style={{ margin: "0 0 0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
           Sign up or log in with your school email
         </h1>
         <p style={{ lineHeight: 1.6, textAlign: "center", color: "#4f4f4f" }}>

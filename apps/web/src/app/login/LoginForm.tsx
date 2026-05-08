@@ -7,6 +7,7 @@ import {
   canStartAuthFlow,
   isSfsuEmail
 } from "@/lib/auth/access";
+import { MIN_PASSWORD_LENGTH, validatePassword } from "@/lib/auth/password";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type LoginFormProps = {
@@ -93,9 +94,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         throw new Error("Use your exact @sfsu.edu school email or approved tester account to create an account.");
       }
 
-      if (!password) {
-        throw new Error("Password is required.");
-      }
+      validatePassword(password);
 
       if (password !== confirmPassword) {
         throw new Error("Password and confirm password must match.");
@@ -223,6 +222,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             <input
               type="password"
               required
+              minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               style={{
@@ -264,6 +264,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             <input
               type="password"
               required
+              minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               style={{
@@ -280,6 +281,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             <input
               type="password"
               required
+              minLength={MIN_PASSWORD_LENGTH}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               style={{

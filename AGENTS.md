@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project purpose
-XRPL campus tokenization platform for unique campus assets using XLS-20 NFTs, Next.js, and Supabase.
+GatorLend is a market-first campus item exchange platform with optional XRPL testnet verification, built with Next.js, Supabase Auth, and pnpm workspaces.
 
 ## Non-negotiables
 - Never commit secrets, seeds, or service role keys.
@@ -19,10 +19,20 @@ XRPL campus tokenization platform for unique campus assets using XLS-20 NFTs, Ne
 - Keep docs updated when architecture changes.
 - Add TODOs instead of inventing unsafe behavior.
 - Use clean TypeScript and small files where practical.
+- Keep Supabase Auth as the source of truth for signup, login, email verification, password reset, and sessions.
+- Keep marketplace auth separate from wallet connection.
+- When app-side access rules change, update matching Supabase RLS policies and migrations in the same task.
 
 ## Current wallet plan
 - Crossmark first
 - Xaman later via adapter
+
+## Current auth model
+- Email/password auth is handled by Supabase Auth.
+- Primary access is verified `@sfsu.edu` emails.
+- A narrow tester override exists for explicit development accounts and must stay aligned with RLS.
+- Unique usernames are required before core marketplace actions.
+- Wallet connection is optional for the market-first flow.
 
 ## Current token standard
 - XLS-20 NFTs for unique assets
@@ -34,6 +44,12 @@ XRPL campus tokenization platform for unique campus assets using XLS-20 NFTs, Ne
 
 ## Current first workflow
 - Textbooks
+
+## Current market-first workflow
+- User signs up with Supabase Auth and confirms email.
+- App bootstraps a `profiles` row and sends users without a username to `/profile/setup`.
+- Verified users can create listings, request items, and complete transfers without wallet login.
+- XRPL minting remains optional for selected textbook flows and must not block the broader marketplace.
 
 ## Scaffold constraints
 - Keep the repository Codespaces-friendly.
