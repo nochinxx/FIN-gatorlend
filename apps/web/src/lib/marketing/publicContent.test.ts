@@ -57,6 +57,9 @@ describe("public marketplace options", () => {
 
   it("does not expose voucher listing type by default", () => {
     expect(PUBLIC_LISTING_TYPE_OPTIONS).not.toContain("voucher");
-    expect(PUBLIC_LISTING_TYPE_OPTIONS).not.toContain("service_offer");
+  });
+
+  it("does expose service listings", () => {
+    expect(PUBLIC_LISTING_TYPE_OPTIONS).toContain("service_offer");
   });
 });

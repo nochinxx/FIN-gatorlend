@@ -3,14 +3,17 @@
 import { useActionState, useState } from "react";
 
 import {
+  DEFAULT_MARKETPLACE_ASSET_TYPE_SUGGESTIONS,
+  formatMarketplaceAssetTypeLabel
+} from "@/lib/marketplace/assetTypes";
+import {
   LISTING_IMAGE_ALLOWED_TYPES,
   LISTING_IMAGE_MAX_COUNT,
   LISTING_IMAGE_MAX_BYTES,
   validateListingImageFiles
 } from "@/lib/marketplace/listingImages";
 import {
-  PUBLIC_ASSET_TYPE_LABELS,
-  PUBLIC_ASSET_TYPE_OPTIONS,
+  PUBLIC_LISTING_TYPE_LABELS,
   PUBLIC_LISTING_TYPE_OPTIONS
 } from "@/lib/marketplace/publicOptions";
 
@@ -20,11 +23,19 @@ const initialState: CreateListingFormState = {
   error: null
 };
 
-export function CreateListingForm() {
+type CreateListingFormProps = {
+  assetTypeSuggestions: string[];
+};
+
+export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormProps) {
   const [state, formAction, isPending] = useActionState(createListingAction, initialState);
   const [localError, setLocalError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<Array<{ name: string; url: string }>>([]);
+  const visibleSuggestions = assetTypeSuggestions.slice(0, 3);
+  const [assetTypeValue, setAssetTypeValue] = useState(
+    visibleSuggestions[0] ?? DEFAULT_MARKETPLACE_ASSET_TYPE_SUGGESTIONS[0]
+  );
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -143,24 +154,55 @@ export function CreateListingForm() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Asset type</span>
-          <select name="asset_type" defaultValue="textbook" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
-            {PUBLIC_ASSET_TYPE_OPTIONS.map((value) => (
-              <option key={value} value={value}>
-                {PUBLIC_ASSET_TYPE_LABELS[value]}
-              </option>
-            ))}
-          </select>
+          <input
+            name="asset_type"
+            list="marketplace-asset-type-suggestions"
+            value={assetTypeValue}
+            onChange={(event) => setAssetTypeValue(event.target.value)}
+            placeholder="textbook, lab coat, tutoring, calculator"
+            style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          />
         </label>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Listing type</span>
           <select name="listing_type" defaultValue="sell" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
             {PUBLIC_LISTING_TYPE_OPTIONS.map((value) => (
               <option key={value} value={value}>
-                {value.replaceAll("_", " ")}
+                {PUBLIC_LISTING_TYPE_LABELS[value]}
               </option>
             ))}
           </select>
         </label>
+      </div>
+
+      <datalist id="marketplace-asset-type-suggestions">
+        {assetTypeSuggestions.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
+
+      <div style={{ display: "flex", gap: "0.55rem", flexWrap: "wrap", marginTop: "-0.35rem" }}>
+        {visibleSuggestions.map((value) => (
+          <button
+            type="button"
+            key={value}
+            onClick={() => setAssetTypeValue(value)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0.45rem 0.7rem",
+              borderRadius: 999,
+              border: 0,
+              background: assetTypeValue === value ? "#17331d" : "#f3f3f3",
+              color: assetTypeValue === value ? "#ffffff" : "#444444",
+              fontSize: 13,
+              cursor: "pointer"
+            }}
+          >
+            {formatMarketplaceAssetTypeLabel(value)}
+          </button>
+        ))}
       </div>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>

@@ -1,20 +1,59 @@
-import Link from "next/link";
-
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getProfileIdentityLabel, profileNeedsSetup } from "@/lib/auth/profile-schema";
 import { getPendingReceivedRequestCount } from "@/lib/marketplace/server";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
+import { AppNavShell } from "./AppNavShell";
 import { BrandLogo } from "./BrandLogo";
-import { SignOutButton } from "./SignOutButton";
 
-const navLinkStyle = {
-  color: "#111111",
-  textDecoration: "none",
-  fontSize: 14,
-  fontWeight: 500
-} as const;
+function iconStyle() {
+  return { width: 20, height: 20, display: "block" } as const;
+}
+
+function StorefrontIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={iconStyle()}>
+      <path d="M4 10h16" />
+      <path d="M6 10l1-5h10l1 5" />
+      <path d="M5 10v8h14v-8" />
+      <path d="M9 18v-4h6v4" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={iconStyle()}>
+      <path d="M9 6h11" />
+      <path d="M9 12h11" />
+      <path d="M9 18h11" />
+      <path d="M4 6h.01" />
+      <path d="M4 12h.01" />
+      <path d="M4 18h.01" />
+    </svg>
+  );
+}
+
+function InboxIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={iconStyle()}>
+      <path d="M4 13.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7.5" />
+      <path d="M4 13.5h4l2 3h4l2-3h4" />
+      <path d="M5 13.5v4.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4.5" />
+    </svg>
+  );
+}
+
+function PlusSquareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={iconStyle()}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3" />
+      <path d="M12 8v8" />
+      <path d="M8 12h8" />
+    </svg>
+  );
+}
 
 export async function AppHeader() {
   const supabase = await createSupabaseServerAuthClient();
@@ -28,6 +67,15 @@ export async function AppHeader() {
   const pendingReceivedRequestCount =
     canAccessApp && !needsSetup ? await getPendingReceivedRequestCount() : 0;
 
+  const navItems = canAccessApp
+    ? [
+        { href: "/marketplace", label: "Marketplace", icon: <StorefrontIcon /> },
+        { href: "/my-listings", label: "My Listings", icon: <ListIcon /> },
+        { href: "/requests", label: "Requests", icon: <InboxIcon />, badgeCount: pendingReceivedRequestCount || undefined },
+        { href: "/listings/new", label: "Create", icon: <PlusSquareIcon /> }
+      ]
+    : [];
+
   return (
     <header
       style={{
@@ -39,86 +87,23 @@ export async function AppHeader() {
         backdropFilter: "saturate(180%) blur(8px)"
       }}
     >
-      <div
-        style={{
-          maxWidth: 1120,
-          margin: "0 auto",
-          padding: "1rem 1.5rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1rem",
-          flexWrap: "wrap"
-        }}
+      <style>{`
+        .mobile-only { display: inline-flex; }
+        .desktop-only { display: none !important; }
+        @media (min-width: 640px) {
+          .mobile-only { display: none !important; }
+          .desktop-only { display: flex !important; }
+        }
+        summary::-webkit-details-marker { display: none; }
+      `}</style>
+      <AppNavShell
+        navItems={navItems}
+        identityLabel={identityLabel}
+        profileHref={user ? (needsSetup ? "/profile/setup" : "/profile") : null}
+        showLogin={!user}
       >
         <BrandLogo size="nav" priority />
-        <nav style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <Link href="/" style={navLinkStyle}>
-            Home
-          </Link>
-          <Link href="/marketplace" style={navLinkStyle}>
-            Marketplace
-          </Link>
-          <Link href="/my-listings" style={navLinkStyle}>
-            My Listings
-          </Link>
-          <Link href="/requests" style={navLinkStyle}>
-            {pendingReceivedRequestCount > 0 ? `Requests (${pendingReceivedRequestCount})` : "Requests"}
-          </Link>
-          <Link href="/catalog" style={navLinkStyle}>
-            XRPL Demo
-          </Link>
-          <Link href="/listings/new" style={navLinkStyle}>
-            Create Listing
-          </Link>
-          {user ? (
-            <Link href={needsSetup ? "/profile/setup" : "/profile"} style={navLinkStyle}>
-              {needsSetup ? "Finish Profile" : "Profile"}
-            </Link>
-          ) : null}
-          {identityLabel ? (
-            <span style={{ fontSize: 14, color: "#4f4f4f" }}>
-              Signed in as <strong>{identityLabel}</strong>
-            </span>
-          ) : null}
-          {user ? (
-            <SignOutButton
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "0.65rem 0.95rem",
-                borderRadius: 999,
-                border: 0,
-                background: "#111111",
-                color: "#ffffff",
-                textDecoration: "none",
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: "pointer"
-              }}
-            />
-          ) : (
-            <Link
-              href="/login"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "0.65rem 0.95rem",
-                borderRadius: 999,
-                background: "#111111",
-                color: "#ffffff",
-                textDecoration: "none",
-                fontSize: 14,
-                fontWeight: 600
-              }}
-            >
-              Enter App
-            </Link>
-          )}
-        </nav>
-      </div>
+      </AppNavShell>
     </header>
   );
 }

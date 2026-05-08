@@ -1,10 +1,14 @@
 import Link from "next/link";
 
+import { listMarketplaceAssetTypeSuggestions } from "@/lib/marketplace/server";
+
 import { CreateListingForm } from "./CreateListingForm";
 
 export const runtime = "nodejs";
 
-export default function NewListingPage() {
+export default async function NewListingPage() {
+  const assetTypeSuggestions = await listMarketplaceAssetTypeSuggestions();
+
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
@@ -22,9 +26,6 @@ export default function NewListingPage() {
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
           <Link href="/marketplace" style={{ color: "#17331d" }}>
             Marketplace
-          </Link>
-          <Link href="/catalog" style={{ color: "#17331d" }}>
-            XRPL Demo
           </Link>
         </div>
       </div>
@@ -55,7 +56,7 @@ export default function NewListingPage() {
         >
           Do not list restricted, unsafe, illegal, perishable, non-transferable, or institutionally controlled items
         </p>
-        <CreateListingForm />
+        <CreateListingForm assetTypeSuggestions={assetTypeSuggestions} />
       </section>
     </main>
   );

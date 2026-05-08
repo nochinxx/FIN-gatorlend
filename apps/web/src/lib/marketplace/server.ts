@@ -20,6 +20,11 @@ import { type Profile } from "@/lib/auth/profile-schema";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import {
+  DEFAULT_MARKETPLACE_ASSET_TYPE_SUGGESTIONS,
+  normalizeMarketplaceAssetType,
+  validateMarketplaceAssetType
+} from "./assetTypes";
+import {
   buildMockOwnershipEvent,
   cancelListingRequest,
   declineListingRequest,
@@ -31,6 +36,7 @@ import {
   assertCanCancelRequestForProfile,
   assertCanCompleteTransferForProfile,
   assertCanCreateListingForProfile,
+  assertCanDeleteListingForProfile,
   assertCanRequestListingForProfile
 } from "./guards";
 import {
@@ -84,6 +90,7 @@ export async function createListing(rawInput: unknown): Promise<Listing> {
     rawInput && typeof rawInput === "object" ? (rawInput as Record<string, unknown>) : {};
   const input = createListingInputSchema.parse({
     ...rawInputRecord,
+    asset_type: validateMarketplaceAssetType(String(rawInputRecord.asset_type ?? "")),
     owner_user_id: user.id
   });
 
@@ -119,6 +126,49 @@ export async function listMarketplaceListings(): Promise<Listing[]> {
   }
 
   return (data ?? []).map((row) => listingSchema.parse(row));
+}
+
+export async function listMarketplaceAssetTypeSuggestions(): Promise<string[]> {
+  await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const { data, error } = await supabase
+    .from("listings")
+    .select("asset_type")
+    .neq("status", "cancelled");
+
+  if (error) {
+    throw new Error(`Failed to load asset type suggestions: ${error.message}`);
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const row of data ?? []) {
+    const assetType = normalizeMarketplaceAssetType(row.asset_type);
+
+    if (!assetType) {
+      continue;
+    }
+
+    counts.set(assetType, (counts.get(assetType) ?? 0) + 1);
+  }
+
+  const rankedSuggestions = [...counts.entries()]
+    .sort((left, right) => {
+      if (right[1] !== left[1]) {
+        return right[1] - left[1];
+      }
+
+      return left[0].localeCompare(right[0]);
+    })
+    .map(([assetType]) => assetType);
+
+  for (const defaultSuggestion of DEFAULT_MARKETPLACE_ASSET_TYPE_SUGGESTIONS) {
+    if (!rankedSuggestions.includes(defaultSuggestion)) {
+      rankedSuggestions.push(defaultSuggestion);
+    }
+  }
+
+  return rankedSuggestions.slice(0, 12);
 }
 
 export async function listListingImagesByListingIds(listingIds: string[]): Promise<ListingImage[]> {
@@ -251,7 +301,8 @@ export async function requestListing(
     .select("id, status")
     .eq("listing_id", listingId)
     .eq("requester_user_id", user.id)
-    .in("status", ["pending", "accepted", "handoff_confirmed"])
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (existingRequestError) {
@@ -259,7 +310,11 @@ export async function requestListing(
   }
 
   if (existingRequest) {
-    throw new Error("You already have an open request for this listing.");
+    if (["pending", "accepted", "handoff_confirmed"].includes(existingRequest.status)) {
+      throw new Error("You already have an open request for this listing.");
+    }
+
+    throw new Error("You have already submitted a request for this listing.");
   }
 
   const input = createListingRequestInputSchema.parse({
@@ -665,4 +720,37 @@ export async function uploadListingImages(
   }
 
   return sortListingImages([...existingImages, ...uploadedImages]);
+}
+
+export async function deleteListing(listingId: string): Promise<void> {
+  const { user, profile } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const listing = await getMarketplaceListingById(listingId);
+
+  if (!listing) {
+    throw new Error("Listing not found.");
+  }
+
+  assertCanDeleteListingForProfile(profile, listing, user.id);
+
+  const existingImages = await getListingImages(listingId);
+  const storagePaths = existingImages
+    .map((image) => image.storage_path)
+    .filter((value): value is string => Boolean(value));
+
+  if (storagePaths.length > 0) {
+    const { error: storageDeleteError } = await supabase.storage
+      .from(LISTING_IMAGE_BUCKET)
+      .remove(storagePaths);
+
+    if (storageDeleteError) {
+      throw new Error(`Failed to delete listing images: ${storageDeleteError.message}`);
+    }
+  }
+
+  const { error } = await supabase.from("listings").delete().eq("id", listingId);
+
+  if (error) {
+    throw new Error(`Failed to delete listing: ${error.message}`);
+  }
 }

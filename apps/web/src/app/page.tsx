@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { WalletConnectionPanel } from "@/components/WalletConnectionPanel";
+import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { profileNeedsSetup } from "@/lib/auth/profile-schema";
 import {
   ADVANCED_LAYER_LINE,
   CURRENT_MVP_LINE,
@@ -14,6 +18,7 @@ import {
   LANDING_WHY_IT_MATTERS,
   PILOT_DISCLAIMER
 } from "@/lib/marketing/publicContent";
+import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 const sectionLabelStyle = {
   margin: 0,
@@ -23,7 +28,17 @@ const sectionLabelStyle = {
   color: "#5b5b5b"
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createSupabaseServerAuthClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (canAccessProtectedAppRoutes(user)) {
+    const profile = await getCurrentUserProfile();
+    redirect(profileNeedsSetup(profile) ? "/profile/setup" : "/marketplace");
+  }
+
   return (
     <main style={{ padding: "0 1.5rem 5rem" }}>
       <section

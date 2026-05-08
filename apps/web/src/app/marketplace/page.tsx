@@ -3,12 +3,19 @@ import Image from "next/image";
 
 import { listProfilesByIds } from "@/lib/auth/profile";
 import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
-import { getListingCardImageUrl } from "@/lib/marketplace/listingImages";
-import { listMarketplaceListings, requireMarketplaceUser } from "@/lib/marketplace/server";
-import { listListingImagesByListingIds } from "@/lib/marketplace/server";
 import {
-  PUBLIC_ASSET_TYPE_LABELS,
-  PUBLIC_ASSET_TYPE_OPTIONS,
+  formatMarketplaceAssetTypeLabel,
+  normalizeMarketplaceAssetType
+} from "@/lib/marketplace/assetTypes";
+import { getListingCardImageUrl } from "@/lib/marketplace/listingImages";
+import {
+  listListingImagesByListingIds,
+  listMarketplaceAssetTypeSuggestions,
+  listMarketplaceListings,
+  requireMarketplaceUser
+} from "@/lib/marketplace/server";
+import {
+  PUBLIC_LISTING_TYPE_LABELS,
   PUBLIC_LISTING_TYPE_OPTIONS
 } from "@/lib/marketplace/publicOptions";
 
@@ -75,10 +82,13 @@ type MarketplacePageProps = {
 
 export default async function MarketplacePage({ searchParams }: MarketplacePageProps) {
   const resolvedSearchParams = await searchParams;
-  const assetTypeFilter = resolvedSearchParams.asset_type ?? "";
+  const assetTypeFilter = normalizeMarketplaceAssetType(resolvedSearchParams.asset_type ?? "");
   const listingTypeFilter = resolvedSearchParams.listing_type ?? "";
   const currentUser = await requireMarketplaceUser();
-  const listings = await listMarketplaceListings();
+  const [listings, assetTypeSuggestions] = await Promise.all([
+    listMarketplaceListings(),
+    listMarketplaceAssetTypeSuggestions()
+  ]);
   const listingImages = await listListingImagesByListingIds(
     listings.flatMap((listing) => (listing.id ? [listing.id] : []))
   );
@@ -94,7 +104,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   ]);
   const ownerProfilesById = new Map(ownerProfiles.map((profile) => [profile.id, profile]));
   const filteredListings = listings.filter((listing) => {
-    if (assetTypeFilter && listing.asset_type !== assetTypeFilter) {
+    if (assetTypeFilter && normalizeMarketplaceAssetType(listing.asset_type) !== assetTypeFilter) {
       return false;
     }
 
@@ -123,23 +133,19 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           <Link href="/listings/new" style={{ color: "#17331d" }}>
             Create Listing
           </Link>
-          <Link href="/catalog" style={{ color: "#17331d" }}>
-            XRPL Demo
-          </Link>
         </div>
       </div>
 
       <form style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginTop: "2rem" }}>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span style={{ fontSize: 14 }}>Asset type</span>
-          <select name="asset_type" defaultValue={assetTypeFilter} style={{ padding: "0.75rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
-            <option value="">All</option>
-            {PUBLIC_ASSET_TYPE_OPTIONS.map((assetType) => (
-              <option key={assetType} value={assetType}>
-                {PUBLIC_ASSET_TYPE_LABELS[assetType]}
-              </option>
-            ))}
-          </select>
+          <input
+            name="asset_type"
+            list="marketplace-filter-asset-types"
+            defaultValue={assetTypeFilter}
+            placeholder="textbook, tutoring, lab coat"
+            style={{ padding: "0.75rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          />
         </label>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span style={{ fontSize: 14 }}>Listing type</span>
@@ -147,7 +153,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             <option value="">All</option>
             {PUBLIC_LISTING_TYPE_OPTIONS.map((listingType) => (
               <option key={listingType} value={listingType}>
-                {listingType.replaceAll("_", " ")}
+                {PUBLIC_LISTING_TYPE_LABELS[listingType]}
               </option>
             ))}
           </select>
@@ -156,10 +162,117 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           Filter
         </button>
       </form>
+      <datalist id="marketplace-filter-asset-types">
+        {assetTypeSuggestions.map((assetType) => (
+          <option key={assetType} value={assetType} />
+        ))}
+      </datalist>
 
       <section
         style={{
-          marginTop: "1.5rem",
+          marginTop: "2rem",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: "1rem"
+        }}
+      >
+        {filteredListings.length === 0 ? (
+          <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff", gridColumn: "1 / -1" }}>
+            <p style={{ margin: 0 }}>No active listings match the current filters.</p>
+          </article>
+        ) : (
+          filteredListings.map((listing) => {
+            const badge = getListingBadge(listing);
+            const imageSrc = getListingCardImageUrl(listing, listingImagesById.get(listing.id!));
+            const ownerLabel = getProfileIdentityLabel(ownerProfilesById.get(listing.owner_user_id));
+            const isOwner = listing.owner_user_id === currentUser.id;
+
+            return (
+              <article
+                key={listing.id}
+                style={{
+                  padding: "1rem",
+                  borderRadius: 22,
+                  border: "1px solid #ebebeb",
+                  background: "#ffffff",
+                  display: "grid",
+                  gap: "0.9rem"
+                }}
+              >
+                  <div style={{ overflow: "hidden", borderRadius: 18, border: "1px solid #efefef", background: "#f7f7f7", aspectRatio: "1 / 1", position: "relative" }}>
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt={listing.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 320px"
+                        style={{
+                          objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
+                          objectPosition: "center",
+                          padding: imageSrc.includes("calculator") ? "0.6rem" : 0
+                        }}
+                      />
+                    ) : (
+                      <ListingImagePlaceholder />
+                    )}
+                  </div>
+                <div style={{ display: "grid", gap: "0.75rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "start" }}>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                        {formatMarketplaceAssetTypeLabel(listing.asset_type)} · {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}
+                      </p>
+                      <h2 style={{ margin: "0.35rem 0 0", fontSize: "1.15rem" }}>{listing.title}</h2>
+                    </div>
+                    <div style={{ padding: "0.45rem 0.7rem", borderRadius: 999, background: badge.background, color: badge.color, fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}>
+                      {badge.label}
+                    </div>
+                  </div>
+
+                  <p style={{ margin: 0, color: "#4b4b4b", lineHeight: 1.6 }}>
+                    {listing.description || "No description added yet."}
+                  </p>
+
+                  <div style={{ display: "grid", gap: "0.35rem", color: "#4a4a4a", fontSize: 14 }}>
+                    <p style={{ margin: 0 }}><strong>Owner:</strong> {ownerLabel}</p>
+                    <p style={{ margin: 0 }}><strong>Status:</strong> {listing.status}</p>
+                    <p style={{ margin: 0 }}><strong>Tokenization:</strong> {formatTokenizationStatus(listing.tokenization_status)}</p>
+                    <p style={{ margin: 0 }}><strong>Price:</strong> {listing.price_amount ? `${listing.price_amount} ${listing.price_type ?? ""}`.trim() : "Price on request"}</p>
+                  </div>
+
+                  <div style={{ marginTop: "0.3rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                    <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
+                      View listing
+                    </Link>
+                    {!isOwner ? (
+                      <Link
+                        href={`/listings/${listing.id}#request-form`}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "0.7rem 0.95rem",
+                          borderRadius: 999,
+                          background: "#17331d",
+                          color: "#ffffff",
+                          fontWeight: 700,
+                          textDecoration: "none"
+                        }}
+                      >
+                        Send request
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        )}
+      </section>
+
+      <section
+        style={{
+          marginTop: "2rem",
           padding: "1rem 1.1rem",
           borderRadius: 18,
           border: "1px solid #ebebeb",
@@ -174,97 +287,6 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         <p style={{ margin: 0, color: "#4f4f4f" }}>3. The owner accepts or declines.</p>
         <p style={{ margin: 0, color: "#4f4f4f" }}>4. Both sides confirm the handoff outside the app.</p>
         <p style={{ margin: 0, color: "#4f4f4f" }}>5. The owner completes the transfer and the app updates ownership.</p>
-      </section>
-
-      <section style={{ marginTop: "2rem", display: "grid", gap: "1rem" }}>
-        {filteredListings.length === 0 ? (
-          <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
-            <p style={{ margin: 0 }}>No active listings match the current filters.</p>
-          </article>
-        ) : (
-          filteredListings.map((listing) => {
-            const badge = getListingBadge(listing);
-            const imageSrc = getListingCardImageUrl(listing, listingImagesById.get(listing.id!));
-            const ownerLabel = getProfileIdentityLabel(ownerProfilesById.get(listing.owner_user_id));
-            const isOwner = listing.owner_user_id === currentUser.id;
-
-            return (
-              <article key={listing.id} style={{ padding: "1.15rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "112px minmax(0, 1fr)", gap: "1rem", alignItems: "start" }}>
-                  <div style={{ overflow: "hidden", borderRadius: 16, border: "1px solid #efefef", background: "#f7f7f7", aspectRatio: "1 / 1", position: "relative" }}>
-                    {imageSrc ? (
-                      <Image
-                        src={imageSrc}
-                        alt={listing.title}
-                        fill
-                        sizes="112px"
-                        style={{
-                          objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
-                          objectPosition: "center",
-                          padding: imageSrc.includes("calculator") ? "0.6rem" : 0
-                        }}
-                      />
-                    ) : (
-                      <ListingImagePlaceholder />
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-                      <div>
-                        <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                          {listing.asset_type} · {listing.listing_type}
-                        </p>
-                        <h2 style={{ margin: "0.35rem 0", fontSize: "1.25rem" }}>{listing.title}</h2>
-                        <p style={{ margin: 0, color: "#4b4b4b", lineHeight: 1.6 }}>
-                          {listing.description || "No description added yet."}
-                        </p>
-                      </div>
-                      <div style={{ display: "grid", gap: "0.5rem", justifyItems: "end" }}>
-                        <div style={{ padding: "0.45rem 0.7rem", borderRadius: 999, background: badge.background, color: badge.color, fontWeight: 600, fontSize: 14 }}>
-                          {badge.label}
-                        </div>
-                        <p style={{ margin: 0, fontWeight: 700 }}>
-                          {listing.price_amount ? `${listing.price_amount} ${listing.price_type ?? ""}`.trim() : "Price on request"}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
-                      <p style={{ margin: 0, color: "#4a4a4a" }}>Owner: {ownerLabel}</p>
-                      <p style={{ margin: 0, color: "#4a4a4a" }}>Status: {listing.status}</p>
-                      <p style={{ margin: 0, color: "#4a4a4a" }}>Tokenization: {formatTokenizationStatus(listing.tokenization_status)}</p>
-                      <p style={{ margin: 0, color: "#4a4a4a" }}>
-                        Exchange preferences: {listing.payment_methods?.length ? listing.payment_methods.join(", ") : "Flexible"}
-                      </p>
-                    </div>
-                    <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                      <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
-                        View listing
-                      </Link>
-                      {!isOwner ? (
-                        <Link
-                          href={`/listings/${listing.id}#request-form`}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: "0.7rem 0.95rem",
-                            borderRadius: 999,
-                            background: "#17331d",
-                            color: "#ffffff",
-                            fontWeight: 700,
-                            textDecoration: "none"
-                          }}
-                        >
-                          Send request
-                        </Link>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          })
-        )}
       </section>
     </main>
   );

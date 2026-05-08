@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { listProfilesByIds } from "@/lib/auth/profile";
 import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
+import { formatMarketplaceAssetTypeLabel } from "@/lib/marketplace/assetTypes";
+import { PUBLIC_LISTING_TYPE_LABELS } from "@/lib/marketplace/publicOptions";
 import { getListingDetailImageUrls } from "@/lib/marketplace/listingImages";
 import {
   getListingImages,
@@ -226,10 +228,10 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
           <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ padding: "0.4rem 0.7rem", borderRadius: 999, background: "#f3f3f3" }}>
-                {listing.asset_type}
+                {formatMarketplaceAssetTypeLabel(listing.asset_type)}
               </span>
               <span style={{ padding: "0.4rem 0.7rem", borderRadius: 999, background: "#f3f3f3" }}>
-                {listing.listing_type}
+                {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}
               </span>
               <span style={{ padding: "0.4rem 0.7rem", borderRadius: 999, background: listing.xrpl_token_id ? "#edf4ff" : "#f3f3f3", color: listing.xrpl_token_id ? "#234f95" : "#444444" }}>
                 {listing.xrpl_token_id ? "Minted on XRPL" : "Not minted on-chain"}

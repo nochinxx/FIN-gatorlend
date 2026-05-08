@@ -149,7 +149,7 @@ const validServiceListing = {
 
 const invalidListingAssetType = {
   ...validTextbookListing,
-  asset_type: "bad_asset"
+  asset_type: ""
 };
 
 const invalidListingType = {
@@ -184,7 +184,7 @@ const listingTestCases: TestCase[] = [
     shouldPass: true
   },
   {
-    name: "invalid asset_type fails",
+    name: "empty asset_type fails",
     payload: invalidListingAssetType,
     shouldPass: false
   },

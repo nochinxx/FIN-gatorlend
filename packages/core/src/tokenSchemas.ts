@@ -167,10 +167,11 @@ export const assetTableRowSchema = z.object({
 });
 
 export const listingMetadataSchema = z.record(z.string(), z.unknown()).default({});
+export const marketplaceListingAssetTypeSchema = z.string().trim().min(1).max(40);
 
 const baseListingSchema = z.object({
   id: z.string().uuid().optional(),
-  asset_type: assetTypeSchema,
+  asset_type: marketplaceListingAssetTypeSchema,
   listing_type: listingTypeSchema,
   title: z.string().min(1),
   description: z.string().optional().nullable(),

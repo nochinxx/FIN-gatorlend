@@ -17,5 +17,13 @@ export const PUBLIC_ASSET_TYPE_LABELS: Record<(typeof PUBLIC_ASSET_TYPE_OPTIONS)
 export const PUBLIC_LISTING_TYPE_OPTIONS = [
   "sell",
   "lend",
-  "borrow_request"
+  "borrow_request",
+  "service_offer"
 ] as const;
+
+export const PUBLIC_LISTING_TYPE_LABELS: Record<(typeof PUBLIC_LISTING_TYPE_OPTIONS)[number], string> = {
+  sell: "Sell",
+  lend: "Lend",
+  borrow_request: "Borrow request",
+  service_offer: "Service"
+};

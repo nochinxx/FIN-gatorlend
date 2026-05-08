@@ -48,3 +48,15 @@ export function assertCanCancelRequestForProfile(
   assertMarketplaceProfileReady(profile);
   return cancelListingRequest(request, actingUserId);
 }
+
+export function assertCanDeleteListingForProfile(
+  profile: Pick<Profile, "username"> | null | undefined,
+  listing: Listing,
+  actingUserId: string
+) {
+  assertMarketplaceProfileReady(profile);
+
+  if (listing.owner_user_id !== actingUserId) {
+    throw new Error("Only the owner can delete this listing.");
+  }
+}

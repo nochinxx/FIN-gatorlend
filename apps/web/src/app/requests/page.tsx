@@ -4,6 +4,8 @@ import Link from "next/link";
 import { listProfilesByIds } from "@/lib/auth/profile";
 import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
+import { formatMarketplaceAssetTypeLabel } from "@/lib/marketplace/assetTypes";
+import { PUBLIC_LISTING_TYPE_LABELS } from "@/lib/marketplace/publicOptions";
 import { type MarketplaceRequestSummary, listRequestsReceived, listRequestsSent } from "@/lib/marketplace/server";
 
 import {
@@ -94,7 +96,7 @@ function RequestCard({ item, counterpartLabel, counterpartTitle, mode }: Request
           <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
             <div>
               <p style={{ margin: 0, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: "#666666" }}>
-                {listing.asset_type} · {listing.listing_type}
+                {formatMarketplaceAssetTypeLabel(listing.asset_type)} · {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}
               </p>
               <h2 style={{ margin: "0.3rem 0 0", fontSize: "1.1rem" }}>{listing.title}</h2>
             </div>

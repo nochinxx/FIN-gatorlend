@@ -1,5 +1,7 @@
 import { listingImageSchema, type Listing, type ListingImage } from "@gatorlend/core";
 
+import { normalizeMarketplaceAssetType } from "./assetTypes";
+
 export const LISTING_IMAGE_BUCKET = "listing-images";
 export const LISTING_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 export const LISTING_IMAGE_MAX_COUNT = 5;
@@ -17,7 +19,7 @@ type UploadableListingImage = {
 
 const SAFE_LOCAL_IMAGE_PATH = /^\/(?:images|branding)\/.+\.(?:png|jpe?g|webp)$/i;
 
-const DEMO_THUMBNAILS: Partial<Record<Listing["asset_type"], string>> = {
+const DEMO_THUMBNAILS: Record<string, string> = {
   textbook: "/images/textbook.jpg",
   calculator: "/images/calculator.jpeg",
   lab_coat: "/images/lab-coat.jpeg"
@@ -122,10 +124,12 @@ export function getListingCardImageUrl(
   listing: Pick<Listing, "asset_type" | "image_url">,
   images?: ListingImage[] | null
 ): string | null {
+  const normalizedAssetType = normalizeMarketplaceAssetType(listing.asset_type);
+
   return (
     resolveStoredListingImageUrl(images) ??
     resolveLegacyListingImageUrl(listing.image_url) ??
-    DEMO_THUMBNAILS[listing.asset_type] ??
+    DEMO_THUMBNAILS[normalizedAssetType] ??
     null
   );
 }
@@ -142,6 +146,9 @@ export function getListingDetailImageUrls(
     return storedImages;
   }
 
-  const fallback = resolveLegacyListingImageUrl(listing.image_url) ?? DEMO_THUMBNAILS[listing.asset_type] ?? null;
+  const fallback =
+    resolveLegacyListingImageUrl(listing.image_url) ??
+    DEMO_THUMBNAILS[normalizeMarketplaceAssetType(listing.asset_type)] ??
+    null;
   return fallback ? [fallback] : [];
 }
