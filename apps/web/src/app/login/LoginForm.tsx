@@ -42,7 +42,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     try {
       if (!canStartAuthFlow(email)) {
-        throw new Error("Use your exact @sfsu.edu school email to access GatorLend.");
+        throw new Error("Use your exact @sfsu.edu school email or approved tester account to access GatorLend.");
       }
 
       if (!password) {
@@ -58,7 +58,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       if (signInError) {
         if (/email not confirmed/i.test(signInError.message)) {
           await supabase.auth.signOut();
-          throw new Error("Please verify your school email before accessing GatorLend.");
+          throw new Error("Please verify your email before accessing GatorLend.");
         }
 
         throw signInError;
@@ -68,10 +68,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         await supabase.auth.signOut();
 
         if (isSfsuEmail(data.user?.email)) {
-          throw new Error("Please verify your school email before accessing GatorLend.");
+          throw new Error("Please verify your email before accessing GatorLend.");
         }
 
-        throw new Error("Use a verified @sfsu.edu email to access GatorLend.");
+        throw new Error("Use a verified @sfsu.edu email or approved tester account to access GatorLend.");
       }
 
       window.location.assign(nextPath);
@@ -90,7 +90,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     try {
       if (!canStartAuthFlow(email)) {
-        throw new Error("Use your exact @sfsu.edu school email to create an account.");
+        throw new Error("Use your exact @sfsu.edu school email or approved tester account to create an account.");
       }
 
       if (!password) {
@@ -120,7 +120,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         throw new Error(result.error ?? "Unable to send verification email. Please try again in a few minutes.");
       }
 
-      setMessage("Check your school email to verify your account. After verification, return here to log in.");
+      setMessage("Check your email to verify your account. After verification, return here to log in.");
       setMode("login");
       setPassword("");
       setConfirmPassword("");
@@ -139,7 +139,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     try {
       if (!canStartAuthFlow(email)) {
-        throw new Error("Use your exact @sfsu.edu school email to reset your password.");
+        throw new Error("Use your exact @sfsu.edu school email or approved tester account to reset your password.");
       }
 
       const response = await fetch("/auth/password-reset", {
@@ -160,7 +160,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         throw new Error(result.error ?? "Unable to send password reset email. Please try again in a few minutes.");
       }
 
-      setMessage("If an account exists for that school email, a password reset link has been sent.");
+      setMessage("If an account exists for that email, a password reset link has been sent.");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Failed to start password reset.");
     } finally {

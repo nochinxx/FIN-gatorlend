@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isSfsuEmail } from "@/lib/auth/access";
+import { canStartAuthFlow } from "@/lib/auth/access";
 import {
   getAuthEmailErrorMessage,
   sendSignupVerificationEmail
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const email = body.email?.trim().toLowerCase() ?? "";
   const password = body.password ?? "";
 
-  if (!isSfsuEmail(email) || !password) {
+  if (!canStartAuthFlow(email) || !password) {
     return NextResponse.json(
       {
         error: "Unable to send verification email. Please try again in a few minutes."

@@ -4,7 +4,9 @@ import {
   canStartAuthFlow,
   canAccessMarketplaceRoutes,
   canAccessProtectedAppRoutes,
+  getMarketplaceRoleForEmail,
   isEmailVerified,
+  isMarketplaceEmailAllowed,
   isSfsuEmail
 } from "./access";
 
@@ -37,6 +39,11 @@ describe("canStartAuthFlow", () => {
     expect(canStartAuthFlow("student@sfsu.edu")).toBe(true);
   });
 
+  it("allows approved tester emails", () => {
+    expect(canStartAuthFlow("mariojillesca@gmail.com")).toBe(true);
+    expect(isMarketplaceEmailAllowed("mariojillesca@gmail.com")).toBe(true);
+  });
+
   it("rejects unrelated emails", () => {
     expect(canStartAuthFlow("someone@gmail.com")).toBe(false);
   });
@@ -53,6 +60,16 @@ describe("verified access checks", () => {
     email_confirmed_at: null
   };
 
+  const verifiedTester = {
+    email: "mariojillesca@gmail.com",
+    email_confirmed_at: "2026-05-07T00:00:00.000Z"
+  };
+
+  const unverifiedTester = {
+    email: "mariojillesca@gmail.com",
+    email_confirmed_at: null
+  };
+
   it("marks verified users as verified", () => {
     expect(isEmailVerified(verifiedUser)).toBe(true);
   });
@@ -66,5 +83,29 @@ describe("verified access checks", () => {
   it("allows verified @sfsu.edu users", () => {
     expect(canAccessMarketplaceRoutes(verifiedUser)).toBe(true);
     expect(canAccessProtectedAppRoutes(verifiedUser)).toBe(true);
+  });
+
+  it("allows verified approved tester users", () => {
+    expect(canAccessMarketplaceRoutes(verifiedTester)).toBe(true);
+    expect(canAccessProtectedAppRoutes(verifiedTester)).toBe(true);
+  });
+
+  it("blocks unverified approved tester users", () => {
+    expect(canAccessMarketplaceRoutes(unverifiedTester)).toBe(false);
+    expect(canAccessProtectedAppRoutes(unverifiedTester)).toBe(false);
+  });
+});
+
+describe("marketplace role resolution", () => {
+  it("assigns owner to the gmail tester account", () => {
+    expect(getMarketplaceRoleForEmail("mariojillesca@gmail.com")).toBe("owner");
+  });
+
+  it("assigns admin to the configured sfsu tester account", () => {
+    expect(getMarketplaceRoleForEmail("mjimenezillesca@sfsu.edu")).toBe("admin");
+  });
+
+  it("defaults other users to student", () => {
+    expect(getMarketplaceRoleForEmail("student@sfsu.edu")).toBe("student");
   });
 });

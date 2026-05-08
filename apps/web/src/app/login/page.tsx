@@ -27,11 +27,11 @@ function sanitizeNextPath(nextPath: string | undefined): string {
 
 function getMessageFromParams(error: string | undefined, notice: string | undefined) {
   if (error === "not-authorized") {
-    return "Use a verified @sfsu.edu email to access GatorLend during the pilot.";
+    return "Use a verified @sfsu.edu email or approved tester account to access GatorLend.";
   }
 
   if (error === "email-not-verified") {
-    return "Please verify your school email before accessing GatorLend.";
+    return "Please verify your email before accessing GatorLend.";
   }
 
   if (error === "profile-setup-failed") {
@@ -115,9 +115,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           Sign up or log in with your school email
         </h1>
         <p style={{ lineHeight: 1.6, textAlign: "center", color: "#4f4f4f" }}>
-          Access is limited to verified school-email users during the pilot. This checks control of
-          an `@sfsu.edu` email. GatorLend is an independent student-built pilot and is not endorsed
-          by SFSU or CSU.
+          Access is limited to verified `@sfsu.edu` users, with separate tester accounts available
+          for development. GatorLend is independent and not endorsed by SFSU or CSU.
         </p>
 
         {message ? (

@@ -3,7 +3,8 @@ import "server-only";
 import {
   canAccessProtectedAppRoutes,
   getEmailLocalPart,
-  isSfsuEmail,
+  getMarketplaceRoleForEmail,
+  isMarketplaceEmailAllowed,
   type EmailVerificationLike
 } from "./access";
 import {
@@ -128,7 +129,7 @@ function buildBootstrapProfile(user: AuthProfileUser) {
     id: user.id,
     email: normalizeProfileEmail(user.email),
     display_name: buildDefaultDisplayName(user.email),
-    role: "student" as const
+    role: getMarketplaceRoleForEmail(user.email)
   };
 }
 
@@ -139,7 +140,7 @@ export async function requireVerifiedSfsuUser(client?: ProfileClient): Promise<A
   } = await supabase.auth.getUser();
 
   if (!user?.email || !canAccessProtectedAppRoutes(user)) {
-    throw new Error("Please log in with a verified @sfsu.edu email before continuing.");
+    throw new Error("Please log in with a verified @sfsu.edu email or approved tester account before continuing.");
   }
 
   return {
@@ -151,8 +152,8 @@ export async function requireVerifiedSfsuUser(client?: ProfileClient): Promise<A
 }
 
 export async function ensureAuthProfile(user: AuthProfileUser, client?: ProfileClient): Promise<Profile> {
-  if (!isSfsuEmail(user.email)) {
-    throw new Error("Profile bootstrap requires an @sfsu.edu email.");
+  if (!isMarketplaceEmailAllowed(user.email)) {
+    throw new Error("Profile bootstrap requires a verified school email or approved tester account.");
   }
 
   const supabase = client ?? (await createSupabaseServerAuthClient());

@@ -9,10 +9,13 @@ GatorLend uses Supabase Auth for:
 - session management
 
 Resend SMTP is configured in the Supabase Dashboard. The app does not send auth emails directly.
+Approved tester emails can also be enabled in app code for development without changing the
+default school-email requirement for regular users.
 
 ## Pilot Access Rules
 
 - Access is limited to verified `@sfsu.edu` email users during the pilot.
+- Approved tester accounts can be granted access for development workflows.
 - This verifies control of an `@sfsu.edu` email, not official student, faculty, or alumni status.
 - GatorLend is an independent student-built pilot and is not endorsed by SFSU or CSU.
 - GatorLend does not process payments or hold funds.

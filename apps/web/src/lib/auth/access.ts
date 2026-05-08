@@ -1,8 +1,12 @@
+import { getApprovedRoleForEmail, isApprovedTesterEmail } from "./allowlist";
+
 export type EmailVerificationLike = {
   email?: string | null;
   email_confirmed_at?: string | null;
   confirmed_at?: string | null;
 };
+
+export type MarketplaceRole = "student" | "admin" | "owner";
 
 export function normalizeEmail(email: string | null | undefined): string {
   return email?.trim().toLowerCase() ?? "";
@@ -23,14 +27,22 @@ export function isEmailVerified(user: EmailVerificationLike | null | undefined):
   return Boolean(user?.email_confirmed_at || user?.confirmed_at);
 }
 
+export function isMarketplaceEmailAllowed(email: string | null | undefined): boolean {
+  return isSfsuEmail(email) || isApprovedTesterEmail(email);
+}
+
 export function canStartAuthFlow(email: string | null | undefined): boolean {
-  return isSfsuEmail(email);
+  return isMarketplaceEmailAllowed(email);
 }
 
 export function canAccessMarketplaceRoutes(user: EmailVerificationLike | null | undefined): boolean {
-  return Boolean(user?.email && isSfsuEmail(user.email) && isEmailVerified(user));
+  return Boolean(user?.email && isMarketplaceEmailAllowed(user.email) && isEmailVerified(user));
 }
 
 export function canAccessProtectedAppRoutes(user: EmailVerificationLike | null | undefined): boolean {
   return canAccessMarketplaceRoutes(user);
+}
+
+export function getMarketplaceRoleForEmail(email: string | null | undefined): MarketplaceRole {
+  return getApprovedRoleForEmail(email) ?? "student";
 }
