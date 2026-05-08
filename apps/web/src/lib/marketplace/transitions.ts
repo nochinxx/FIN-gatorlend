@@ -48,6 +48,21 @@ export function declineListingRequest(request: ListingRequest, actingUserId: str
   });
 }
 
+export function cancelListingRequest(request: ListingRequest, actingUserId: string): ListingRequest {
+  if (request.requester_user_id !== actingUserId) {
+    throw new Error("Only the requester can cancel this request.");
+  }
+
+  if (request.status !== "pending") {
+    throw new Error("Only pending requests can be cancelled.");
+  }
+
+  return listingRequestSchema.parse({
+    ...request,
+    status: "cancelled"
+  });
+}
+
 export function completeListingTransfer(request: ListingRequest, actingUserId: string): ListingRequest {
   if (request.owner_user_id !== actingUserId) {
     throw new Error("Only the listing owner can complete this transfer.");

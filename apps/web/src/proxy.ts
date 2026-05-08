@@ -13,7 +13,7 @@ function isMarketplacePath(pathname: string): boolean {
 }
 
 function requiresCompletedProfile(pathname: string): boolean {
-  return isMarketplacePath(pathname) || pathname === "/my-listings";
+  return isMarketplacePath(pathname) || pathname === "/my-listings" || pathname === "/requests";
 }
 
 function isProtectedPath(pathname: string): boolean {
@@ -22,6 +22,7 @@ function isProtectedPath(pathname: string): boolean {
     pathname === "/profile" ||
     pathname === "/profile/setup" ||
     pathname === "/my-listings" ||
+    pathname === "/requests" ||
     pathname === "/textbooks/new" ||
     pathname.startsWith("/assets/") ||
     isMarketplacePath(pathname)
@@ -119,6 +120,7 @@ export const config = {
     "/profile",
     "/profile/setup",
     "/my-listings",
+    "/requests",
     "/textbooks/new",
     "/listings/new",
     "/assets/:path*",

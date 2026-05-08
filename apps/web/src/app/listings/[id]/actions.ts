@@ -4,10 +4,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import {
-  acceptRequest,
+  acceptRequestWithOwnerNote,
+  cancelRequest,
   completeTransfer,
   declineRequest,
-  requestListing
+  requestListing,
+  uploadListingImages
 } from "@/lib/marketplace/server";
 
 function getListingId(formData: FormData) {
@@ -20,22 +22,37 @@ function getListingId(formData: FormData) {
   return listingId;
 }
 
+function getRedirectTo(formData: FormData, fallback: string) {
+  const redirectTo = String(formData.get("redirect_to") ?? "");
+  return redirectTo.startsWith("/") ? redirectTo : fallback;
+}
+
+function buildErrorDestination(redirectTo: string, fallbackListingId: string, message: string) {
+  if (redirectTo.startsWith("/requests")) {
+    return `/requests?error=${encodeURIComponent(message)}`;
+  }
+
+  return `/listings/${fallbackListingId}?error=${encodeURIComponent(message)}`;
+}
+
 export async function requestListingAction(formData: FormData) {
   const listingId = getListingId(formData);
-  let destination = `/listings/${listingId}?notice=requested`;
+  let destination = getRedirectTo(formData, `/listings/${listingId}?notice=requested`);
 
   try {
     await requestListing(
       listingId,
       String(formData.get("message") ?? ""),
       String(formData.get("payment_method") ?? ""),
-      String(formData.get("handoff_location") ?? "")
+      String(formData.get("handoff_location") ?? ""),
+      String(formData.get("availability_note") ?? "")
     );
     revalidatePath(`/listings/${listingId}`);
     revalidatePath("/my-listings");
+    revalidatePath("/requests");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to request listing.";
-    destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
+    destination = buildErrorDestination(destination, listingId, message);
   }
 
   redirect(destination);
@@ -44,15 +61,16 @@ export async function requestListingAction(formData: FormData) {
 export async function acceptRequestAction(formData: FormData) {
   const listingId = getListingId(formData);
   const requestId = String(formData.get("request_id") ?? "");
-  let destination = `/listings/${listingId}?notice=accepted`;
+  let destination = getRedirectTo(formData, `/listings/${listingId}?notice=accepted`);
 
   try {
-    await acceptRequest(requestId);
+    await acceptRequestWithOwnerNote(requestId, String(formData.get("owner_note") ?? ""));
     revalidatePath(`/listings/${listingId}`);
     revalidatePath("/my-listings");
+    revalidatePath("/requests");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to accept request.";
-    destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
+    destination = buildErrorDestination(destination, listingId, message);
   }
 
   redirect(destination);
@@ -61,15 +79,16 @@ export async function acceptRequestAction(formData: FormData) {
 export async function declineRequestAction(formData: FormData) {
   const listingId = getListingId(formData);
   const requestId = String(formData.get("request_id") ?? "");
-  let destination = `/listings/${listingId}?notice=declined`;
+  let destination = getRedirectTo(formData, `/listings/${listingId}?notice=declined`);
 
   try {
     await declineRequest(requestId);
     revalidatePath(`/listings/${listingId}`);
     revalidatePath("/my-listings");
+    revalidatePath("/requests");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to decline request.";
-    destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
+    destination = buildErrorDestination(destination, listingId, message);
   }
 
   redirect(destination);
@@ -78,17 +97,58 @@ export async function declineRequestAction(formData: FormData) {
 export async function completeTransferAction(formData: FormData) {
   const listingId = getListingId(formData);
   const requestId = String(formData.get("request_id") ?? "");
-  let destination = `/listings/${listingId}?notice=completed`;
+  let destination = getRedirectTo(formData, `/listings/${listingId}?notice=completed`);
 
   try {
     await completeTransfer(requestId);
     revalidatePath(`/listings/${listingId}`);
     revalidatePath("/marketplace");
     revalidatePath("/my-listings");
+    revalidatePath("/requests");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to complete transfer.";
-    destination = `/listings/${listingId}?error=${encodeURIComponent(message)}`;
+    destination = buildErrorDestination(destination, listingId, message);
   }
 
   redirect(destination);
+}
+
+export async function cancelRequestAction(formData: FormData) {
+  const listingId = getListingId(formData);
+  const requestId = String(formData.get("request_id") ?? "");
+  let destination = getRedirectTo(formData, "/requests?notice=cancelled");
+
+  try {
+    await cancelRequest(requestId);
+    revalidatePath(`/listings/${listingId}`);
+    revalidatePath("/marketplace");
+    revalidatePath("/my-listings");
+    revalidatePath("/requests");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to cancel request.";
+    destination = buildErrorDestination(destination, listingId, message);
+  }
+
+  redirect(destination);
+}
+
+export async function uploadListingImagesAction(formData: FormData) {
+  const listingId = getListingId(formData);
+  const destination = `/listings/${listingId}`;
+  const imageFiles = formData
+    .getAll("images")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+
+  try {
+    await uploadListingImages(listingId, imageFiles, {
+      requireAtLeastOne: true
+    });
+    revalidatePath(destination);
+    revalidatePath("/marketplace");
+    revalidatePath("/my-listings");
+  } catch (error) {
+    redirect(`${destination}?error=${encodeURIComponent(error instanceof Error ? error.message : "Failed to upload images.")}`);
+  }
+
+  redirect(`${destination}?notice=images-updated`);
 }

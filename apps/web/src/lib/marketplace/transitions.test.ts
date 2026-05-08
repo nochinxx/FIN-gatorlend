@@ -4,6 +4,7 @@ import {
   acceptListingRequest,
   assertCanRequestListing,
   buildMockOwnershipEvent,
+  cancelListingRequest,
   completeListingTransfer,
   declineListingRequest,
   reserveListingForAcceptedRequest,
@@ -62,6 +63,12 @@ describe("marketplace transitions", () => {
     expect(nextRequest.status).toBe("declined");
   });
 
+  it("pending -> cancelled allowed by requester", () => {
+    const nextRequest = cancelListingRequest(pendingRequest, pendingRequest.requester_user_id);
+
+    expect(nextRequest.status).toBe("cancelled");
+  });
+
   it("accepted -> completed allowed by owner", () => {
     const acceptedRequest = acceptListingRequest(pendingRequest, listing.owner_user_id);
     const reservedListing = reserveListingForAcceptedRequest(listing, listing.owner_user_id);
@@ -86,6 +93,14 @@ describe("marketplace transitions", () => {
   it("non-owner accepting rejected", () => {
     expect(() => acceptListingRequest(pendingRequest, pendingRequest.requester_user_id)).toThrow(
       "Only the listing owner can accept this request."
+    );
+  });
+
+  it("requester cannot cancel accepted request", () => {
+    const acceptedRequest = acceptListingRequest(pendingRequest, listing.owner_user_id);
+
+    expect(() => cancelListingRequest(acceptedRequest, pendingRequest.requester_user_id)).toThrow(
+      "Only pending requests can be cancelled."
     );
   });
 

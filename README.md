@@ -69,6 +69,7 @@ Protected routes:
 - `/marketplace`
 - `/listings/new`
 - `/listings/[id]`
+- `/requests`
 - `/profile`
 - `/profile/setup`
 - `/my-listings`
@@ -124,11 +125,22 @@ The shared model now supports broader marketplace asset types, while XRPL mintin
 - Marketplace route at `/marketplace`
 - Listing creation at `/listings/new`
 - Listing detail and request flow at `/listings/[id]`
+- Request dashboard at `/requests`
 - verified `@sfsu.edu` email/password login first, wallet optional
 - unique username required before core marketplace actions
 - default listings create internal records without requiring XRPL minting
+- listing photos upload to Supabase Storage bucket `listing-images`
+- upload path format is `{user_id}/{listing_id}/{safeFileName}`
+- supported image types are JPEG, PNG, and WEBP up to 5MB each
 - request / accept / decline / complete transfer lifecycle inside Supabase
+- structured request notes replace full chat for now
 - ownership transfer tracked off-chain for now
 - payment remains external
+
+Storage note:
+- the `listing-images` bucket is created manually in Supabase Dashboard
+- the bucket is public for marketplace item photos
+- app code and migrations assume per-user folder RLS on `storage.objects`
+- users should not upload sensitive or private images
 
 See [`docs/current-marketplace-architecture.md`](/Users/mariojillesca/Code/FIN-gatorlend/docs/current-marketplace-architecture.md) for the current direction and limitations.

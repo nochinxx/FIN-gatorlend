@@ -5,6 +5,7 @@ import { assertMarketplaceProfileReady, type Profile } from "../auth/profile-sch
 import {
   acceptListingRequest,
   assertCanRequestListing,
+  cancelListingRequest,
   completeListingTransfer
 } from "./transitions";
 
@@ -37,4 +38,13 @@ export function assertCanCompleteTransferForProfile(
 ) {
   assertMarketplaceProfileReady(profile);
   return completeListingTransfer(request, actingUserId);
+}
+
+export function assertCanCancelRequestForProfile(
+  profile: Pick<Profile, "username"> | null | undefined,
+  request: ListingRequest,
+  actingUserId: string
+) {
+  assertMarketplaceProfileReady(profile);
+  return cancelListingRequest(request, actingUserId);
 }

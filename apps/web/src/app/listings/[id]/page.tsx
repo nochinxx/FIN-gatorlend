@@ -1,10 +1,13 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { listProfilesByIds } from "@/lib/auth/profile";
 import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
+import { FormSubmitButton } from "@/components/FormSubmitButton";
+import { getListingDetailImageUrls } from "@/lib/marketplace/listingImages";
 import {
+  getListingImages,
   getListingRequestsForUser,
   getMarketplaceListingById,
   getMarketplaceProfile,
@@ -13,21 +16,15 @@ import {
 
 import {
   acceptRequestAction,
+  cancelRequestAction,
   completeTransferAction,
   declineRequestAction,
-  requestListingAction
+  requestListingAction,
+  uploadListingImagesAction
 } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function resolveMarketplaceImage(imageUrl: string | null | undefined) {
-  if (typeof imageUrl === "string" && /^\/(?:images|branding)\/.+\.(?:png|jpe?g|webp)$/i.test(imageUrl)) {
-    return imageUrl;
-  }
-
-  return null;
-}
 
 function ListingImagePlaceholder() {
   return (
@@ -64,6 +61,14 @@ function formatTokenizationStatus(status: string) {
   return status.replaceAll("_", " ");
 }
 
+function formatRequestTime(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return new Date(value).toLocaleString();
+}
+
 type ListingDetailPageProps = {
   params: Promise<{
     id: string;
@@ -85,6 +90,9 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
 
   const currentUser = await requireMarketplaceUser();
   const ownerProfile = await getMarketplaceProfile(listing.owner_user_id);
+  const listingImages = await getListingImages(listing.id!);
+  const imageUrls = getListingDetailImageUrls(listing, listingImages);
+  const [coverImage, ...galleryImages] = imageUrls;
   const requests = await getListingRequestsForUser(listing.id!);
   const requesterProfiles = await listProfilesByIds([
     ...new Set(requests.map((request) => request.requester_user_id))
@@ -92,7 +100,6 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
   const requesterProfilesById = new Map(requesterProfiles.map((profile) => [profile.id, profile]));
   const isOwner = currentUser.id === listing.owner_user_id;
   const relatedRequest = requests.find((request) => request.requester_user_id === currentUser.id);
-  const imageSrc = resolveMarketplaceImage(listing.image_url);
 
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>
@@ -134,29 +141,88 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
         style={{
           marginTop: "2rem",
           display: "grid",
-          gridTemplateColumns: "minmax(280px, 340px) minmax(0, 1fr)",
+          gridTemplateColumns: "minmax(240px, 300px) minmax(0, 1fr)",
           gap: "1.5rem"
         }}
       >
-        <div style={{ overflow: "hidden", borderRadius: 20, border: "1px solid #ebebeb", position: "relative", aspectRatio: "1 / 1", background: "#f7f7f7" }}>
-          {imageSrc ? (
-            <Image
-              src={imageSrc}
-              alt={listing.title}
-              fill
-              sizes="340px"
-              style={{
-                objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
-                objectPosition: "center",
-                padding: imageSrc.includes("calculator") ? "1rem" : 0
-              }}
-            />
-          ) : (
-            <ListingImagePlaceholder />
-          )}
+        <div style={{ display: "grid", gap: "0.85rem" }}>
+          <div style={{ overflow: "hidden", borderRadius: 20, border: "1px solid #ebebeb", position: "relative", aspectRatio: "4 / 5", background: "#f7f7f7" }}>
+            {coverImage ? (
+              <Image
+                src={coverImage}
+                alt={listing.title}
+                fill
+                sizes="300px"
+                style={{
+                  objectFit: coverImage.includes("calculator") ? "contain" : "cover",
+                  objectPosition: "center",
+                  padding: coverImage.includes("calculator") ? "1rem" : 0
+                }}
+              />
+            ) : (
+              <ListingImagePlaceholder />
+            )}
+          </div>
+
+          {galleryImages.length > 0 ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.65rem" }}>
+              {galleryImages.map((imageUrl, index) => (
+                <div
+                  key={`${imageUrl}-${index}`}
+                  style={{
+                    overflow: "hidden",
+                    borderRadius: 16,
+                    border: "1px solid #ebebeb",
+                    position: "relative",
+                    aspectRatio: "1 / 1",
+                    background: "#f7f7f7"
+                  }}
+                >
+                  <Image
+                    src={imageUrl}
+                    alt={`${listing.title} photo ${index + 2}`}
+                    fill
+                    sizes="120px"
+                    style={{ objectFit: "cover", objectPosition: "center" }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div style={{ display: "grid", gap: "1rem" }}>
+          {isOwner ? (
+            <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
+              <h2 style={{ marginTop: 0, fontSize: "1.1rem" }}>Manage listing photos</h2>
+              <p style={{ margin: "0.35rem 0 1rem", color: "#4a4a4a", lineHeight: 1.6 }}>
+                Add up to 5 total photos. Clear photos help other students understand condition before requesting.
+              </p>
+              <form action={uploadListingImagesAction} style={{ display: "grid", gap: "0.85rem" }}>
+                <input type="hidden" name="listing_id" value={listing.id} />
+                <label style={{ display: "grid", gap: "0.35rem" }}>
+                  <span>Add more photos</span>
+                  <input
+                    type="file"
+                    name="images"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+                  />
+                </label>
+                <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#fff8ea", color: "#6a4c00" }}>
+                  Only upload photos of the item. Do not upload IDs, personal documents, faces, private information, or anything sensitive.
+                </p>
+                <FormSubmitButton
+                  pendingLabel="Uploading..."
+                  style={{ width: "fit-content", padding: "0.85rem 1rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}
+                >
+                  Upload photos
+                </FormSubmitButton>
+              </form>
+            </article>
+          ) : null}
+
           <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ padding: "0.4rem 0.7rem", borderRadius: 999, background: "#f3f3f3" }}>
@@ -199,35 +265,62 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
           </article>
 
           {!isOwner ? (
-            <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
+            <article id="request-form" style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff", scrollMarginTop: "6rem" }}>
               <h2 style={{ marginTop: 0 }}>Request this listing</h2>
               {relatedRequest ? (
-                <div style={{ display: "grid", gap: "0.45rem", color: "#4a4a4a" }}>
+                <div style={{ display: "grid", gap: "0.6rem", color: "#4a4a4a" }}>
                   <p style={{ margin: 0 }}>
                     Your current request status: <strong>{relatedRequest.status}</strong>
                   </p>
-                  <p style={{ margin: 0 }}>
-                    If the owner accepts, coordinate the handoff directly, then wait for the owner to complete the transfer here.
-                  </p>
+                  {relatedRequest.message ? <p style={{ margin: 0 }}><strong>Your message:</strong> {relatedRequest.message}</p> : null}
+                  {relatedRequest.handoff_location ? <p style={{ margin: 0 }}><strong>Preferred handoff:</strong> {relatedRequest.handoff_location}</p> : null}
+                  {relatedRequest.availability_note ? <p style={{ margin: 0 }}><strong>Availability:</strong> {relatedRequest.availability_note}</p> : null}
+                  {relatedRequest.owner_note ? <p style={{ margin: 0 }}><strong>Owner response:</strong> {relatedRequest.owner_note}</p> : null}
+                  <div style={{ display: "grid", gap: "0.35rem", fontSize: 14 }}>
+                    <span>Requested: {formatRequestTime(relatedRequest.requested_at) ?? "Pending"}</span>
+                    {relatedRequest.accepted_at ? <span>Accepted: {formatRequestTime(relatedRequest.accepted_at)}</span> : null}
+                    {relatedRequest.completed_at ? <span>Completed: {formatRequestTime(relatedRequest.completed_at)}</span> : null}
+                  </div>
+                  {relatedRequest.status === "pending" ? (
+                    <form action={cancelRequestAction}>
+                      <input type="hidden" name="listing_id" value={listing.id} />
+                      <input type="hidden" name="request_id" value={relatedRequest.id} />
+                      <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=cancelled`} />
+                      <FormSubmitButton
+                        pendingLabel="Cancelling..."
+                        style={{ width: "fit-content", padding: "0.85rem 1rem", borderRadius: 999, border: "1px solid #d7d7d7", background: "#ffffff", color: "#111111", fontWeight: 700 }}
+                      >
+                        Cancel request
+                      </FormSubmitButton>
+                    </form>
+                  ) : null}
                 </div>
               ) : (
                 <form action={requestListingAction} style={{ display: "grid", gap: "0.85rem" }}>
                   <input type="hidden" name="listing_id" value={listing.id} />
+                  <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=requested`} />
                   <label style={{ display: "grid", gap: "0.35rem" }}>
                     <span>Message</span>
                     <textarea name="message" rows={3} style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
                   </label>
                   <label style={{ display: "grid", gap: "0.35rem" }}>
+                    <span>Preferred handoff location</span>
+                    <input name="handoff_location" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+                  </label>
+                  <label style={{ display: "grid", gap: "0.35rem" }}>
+                    <span>Availability note</span>
+                    <input name="availability_note" placeholder="Weekday afternoon, library area" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+                  </label>
+                  <label style={{ display: "grid", gap: "0.35rem" }}>
                     <span>Exchange note</span>
                     <input name="payment_method" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
                   </label>
-                  <label style={{ display: "grid", gap: "0.35rem" }}>
-                    <span>Handoff location</span>
-                    <input name="handoff_location" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
-                  </label>
-                  <button type="submit" style={{ width: "fit-content", padding: "0.85rem 1rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}>
+                  <FormSubmitButton
+                    pendingLabel="Sending request..."
+                    style={{ width: "fit-content", padding: "0.85rem 1rem", borderRadius: 999, border: 0, background: "#17331d", color: "#ffffff", fontWeight: 700 }}
+                  >
                     Send request
-                  </button>
+                  </FormSubmitButton>
                 </form>
               )}
             </article>
@@ -243,35 +336,63 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
               <p style={{ margin: 0 }}>No requests yet.</p>
             </article>
           ) : (
-            requests.map((request) => (
-              <article key={request.id} style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
+            requests.map((request) => {
+              const acceptFormId = `listing-accept-request-${request.id}`;
+              const declineFormId = `listing-decline-request-${request.id}`;
+
+              return (
+                <article key={request.id} style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                   <div>
                     <p style={{ margin: 0 }}><strong>Requester:</strong> {getProfileIdentityLabel(requesterProfilesById.get(request.requester_user_id))}</p>
                     <p style={{ margin: "0.35rem 0 0" }}><strong>Status:</strong> {request.status}</p>
                     {request.message ? <p style={{ margin: "0.35rem 0 0" }}><strong>Message:</strong> {request.message}</p> : null}
+                    {request.handoff_location ? <p style={{ margin: "0.35rem 0 0" }}><strong>Preferred handoff:</strong> {request.handoff_location}</p> : null}
+                    {request.availability_note ? <p style={{ margin: "0.35rem 0 0" }}><strong>Availability:</strong> {request.availability_note}</p> : null}
+                    {request.owner_note ? <p style={{ margin: "0.35rem 0 0" }}><strong>Owner response:</strong> {request.owner_note}</p> : null}
                     {request.payment_method ? <p style={{ margin: "0.35rem 0 0" }}><strong>Exchange note:</strong> {request.payment_method}</p> : null}
-                    {request.handoff_location ? <p style={{ margin: "0.35rem 0 0" }}><strong>Handoff:</strong> {request.handoff_location}</p> : null}
+                    <p style={{ margin: "0.35rem 0 0", fontSize: 14, color: "#5a5a5a" }}>
+                      Requested: {formatRequestTime(request.requested_at) ?? "Pending"}
+                      {request.accepted_at ? ` · Accepted: ${formatRequestTime(request.accepted_at)}` : ""}
+                      {request.completed_at ? ` · Completed: ${formatRequestTime(request.completed_at)}` : ""}
+                    </p>
                   </div>
 
                   <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                     {request.status === "pending" ? (
-                      <>
-                        <form action={acceptRequestAction}>
-                          <input type="hidden" name="listing_id" value={listing.id} />
-                          <input type="hidden" name="request_id" value={request.id} />
-                          <button type="submit" style={{ padding: "0.75rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}>
-                            Accept
-                          </button>
-                        </form>
-                        <form action={declineRequestAction}>
-                          <input type="hidden" name="listing_id" value={listing.id} />
-                          <input type="hidden" name="request_id" value={request.id} />
-                          <button type="submit" style={{ padding: "0.75rem 0.95rem", borderRadius: 999, border: "1px solid #d7d7d7", background: "#ffffff", color: "#111111", fontWeight: 700 }}>
-                            Decline
-                          </button>
-                        </form>
-                      </>
+                      <div style={{ width: "100%", maxWidth: 420, display: "grid", gap: "0.65rem" }}>
+                        <textarea
+                          name="owner_note"
+                          form={acceptFormId}
+                          rows={2}
+                          placeholder="Accepted. Suggested meetup details..."
+                          style={{ width: "100%", padding: "0.8rem 0.9rem", borderRadius: 14, border: "1px solid #d7d7d7", resize: "vertical" }}
+                        />
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "0.65rem" }}>
+                          <form id={acceptFormId} action={acceptRequestAction}>
+                            <input type="hidden" name="listing_id" value={listing.id} />
+                            <input type="hidden" name="request_id" value={request.id} />
+                            <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=accepted`} />
+                            <FormSubmitButton
+                              pendingLabel="Accepting..."
+                              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#1f7a36", color: "#ffffff", fontWeight: 700 }}
+                            >
+                              Accept
+                            </FormSubmitButton>
+                          </form>
+                          <form id={declineFormId} action={declineRequestAction}>
+                            <input type="hidden" name="listing_id" value={listing.id} />
+                            <input type="hidden" name="request_id" value={request.id} />
+                            <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=declined`} />
+                            <FormSubmitButton
+                              pendingLabel="Declining..."
+                              style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}
+                            >
+                              Decline
+                            </FormSubmitButton>
+                          </form>
+                        </div>
+                      </div>
                     ) : null}
 
                     {request.status === "accepted" ? (
@@ -282,16 +403,21 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
                         <form action={completeTransferAction}>
                           <input type="hidden" name="listing_id" value={listing.id} />
                           <input type="hidden" name="request_id" value={request.id} />
-                          <button type="submit" style={{ padding: "0.75rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}>
+                          <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=completed`} />
+                          <FormSubmitButton
+                            pendingLabel="Completing..."
+                            style={{ padding: "0.75rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}
+                          >
                             Complete transfer
-                          </button>
+                          </FormSubmitButton>
                         </form>
                       </div>
                     ) : null}
                   </div>
                 </div>
-              </article>
-            ))
+                </article>
+              );
+            })
           )}
         </section>
       ) : null}

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertCanAcceptRequestForProfile,
+  assertCanCancelRequestForProfile,
   assertCanCompleteTransferForProfile,
   assertCanCreateListingForProfile,
   assertCanRequestListingForProfile
@@ -86,5 +87,11 @@ describe("marketplace profile guards", () => {
     expect(() =>
       assertCanCompleteTransferForProfile(readyProfile, acceptedRequest, pendingRequest.requester_user_id)
     ).toThrow("Only the listing owner can complete this transfer.");
+  });
+
+  it("requester can cancel pending request", () => {
+    expect(() =>
+      assertCanCancelRequestForProfile(readyProfile, pendingRequest, pendingRequest.requester_user_id)
+    ).not.toThrow();
   });
 });

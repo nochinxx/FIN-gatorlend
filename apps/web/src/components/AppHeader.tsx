@@ -3,6 +3,7 @@ import Link from "next/link";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getProfileIdentityLabel, profileNeedsSetup } from "@/lib/auth/profile-schema";
+import { getPendingReceivedRequestCount } from "@/lib/marketplace/server";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import { BrandLogo } from "./BrandLogo";
@@ -24,6 +25,8 @@ export async function AppHeader() {
   const profile = canAccessApp ? await getCurrentUserProfile() : null;
   const identityLabel = canAccessApp ? getProfileIdentityLabel(profile) : null;
   const needsSetup = profileNeedsSetup(profile);
+  const pendingReceivedRequestCount =
+    canAccessApp && !needsSetup ? await getPendingReceivedRequestCount() : 0;
 
   return (
     <header
@@ -58,6 +61,9 @@ export async function AppHeader() {
           </Link>
           <Link href="/my-listings" style={navLinkStyle}>
             My Listings
+          </Link>
+          <Link href="/requests" style={navLinkStyle}>
+            {pendingReceivedRequestCount > 0 ? `Requests (${pendingReceivedRequestCount})` : "Requests"}
           </Link>
           <Link href="/catalog" style={navLinkStyle}>
             XRPL Demo

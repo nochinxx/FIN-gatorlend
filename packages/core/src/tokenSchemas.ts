@@ -216,6 +216,8 @@ export const listingRequestSchema = z.object({
   message: z.string().optional().nullable(),
   payment_method: z.string().optional().nullable(),
   handoff_location: z.string().optional().nullable(),
+  availability_note: z.string().optional().nullable(),
+  owner_note: z.string().optional().nullable(),
   requested_at: z.string().optional(),
   accepted_at: z.string().optional().nullable(),
   completed_at: z.string().optional().nullable(),
@@ -238,8 +240,19 @@ export const createListingRequestInputSchema = listingRequestSchema
   .extend({
     message: z.string().optional(),
     payment_method: z.string().optional(),
-    handoff_location: z.string().optional()
+    handoff_location: z.string().optional(),
+    availability_note: z.string().optional()
   });
+
+export const listingImageSchema = z.object({
+  id: z.string().uuid().optional(),
+  listing_id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  storage_path: z.string().min(1),
+  public_url: z.string().url().optional().nullable(),
+  display_order: z.number().int().nonnegative().default(0),
+  created_at: z.string().optional()
+});
 
 export const ownershipEventSchema = z.object({
   id: z.string().uuid().optional(),
@@ -279,4 +292,5 @@ export type Listing = z.infer<typeof listingSchema>;
 export type CreateListingInput = z.infer<typeof createListingInputSchema>;
 export type ListingRequest = z.infer<typeof listingRequestSchema>;
 export type CreateListingRequestInput = z.infer<typeof createListingRequestInputSchema>;
+export type ListingImage = z.infer<typeof listingImageSchema>;
 export type OwnershipEvent = z.infer<typeof ownershipEventSchema>;

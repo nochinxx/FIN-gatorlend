@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { createListing } from "@/lib/marketplace/server";
+import { createListing, uploadListingImages } from "@/lib/marketplace/server";
 
 function parseOptionalNumber(value: FormDataEntryValue | null): number | null {
   if (typeof value !== "string" || value.trim() === "") {
@@ -49,6 +49,9 @@ export async function createListingAction(
   formData: FormData
 ): Promise<CreateListingFormState> {
   let listingId: string | undefined;
+  const imageFiles = formData
+    .getAll("images")
+    .filter((value): value is File => value instanceof File && value.size > 0);
 
   try {
     const listing = await createListing({
@@ -69,7 +72,17 @@ export async function createListingAction(
       metadata: parseMetadata(formData.get("metadata"))
     });
     listingId = listing.id;
+
+    await uploadListingImages(listing.id!, imageFiles, {
+      requireAtLeastOne: true
+    });
   } catch (error) {
+    if (listingId) {
+      revalidatePath("/marketplace");
+      revalidatePath("/my-listings");
+      redirect(`/listings/${listingId}?error=${encodeURIComponent(error instanceof Error ? error.message : "Failed to upload images.")}`);
+    }
+
     return {
       error: error instanceof Error ? error.message : "Failed to create listing."
     };

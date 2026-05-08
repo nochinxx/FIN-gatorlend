@@ -2,11 +2,13 @@ import "server-only";
 
 import {
   createListingInputSchema,
+  listingImageSchema,
   createListingRequestInputSchema,
   listingRequestSchema,
   listingSchema,
   ownershipEventSchema,
   type Listing,
+  type ListingImage,
   type ListingRequest
 } from "@gatorlend/core";
 
@@ -19,16 +21,27 @@ import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 
 import {
   buildMockOwnershipEvent,
+  cancelListingRequest,
   declineListingRequest,
   reserveListingForAcceptedRequest,
   transferListingOwnership
 } from "./transitions";
 import {
   assertCanAcceptRequestForProfile,
+  assertCanCancelRequestForProfile,
   assertCanCompleteTransferForProfile,
   assertCanCreateListingForProfile,
   assertCanRequestListingForProfile
 } from "./guards";
+import {
+  buildListingImageStoragePath,
+  getListingCardImageUrl,
+  LISTING_IMAGE_BUCKET,
+  parseListingImage,
+  sanitizeListingImageFileName,
+  sortListingImages,
+  validateListingImageFiles
+} from "./listingImages";
 
 export type AuthenticatedMarketplaceUser = {
   id: string;
@@ -38,6 +51,12 @@ export type AuthenticatedMarketplaceUser = {
 export type ListingSummary = {
   listing: Listing;
   pendingRequestCount: number;
+};
+
+export type MarketplaceRequestSummary = {
+  request: ListingRequest;
+  listing: Listing;
+  listingImageUrl: string | null;
 };
 
 export async function requireMarketplaceUser(): Promise<AuthenticatedMarketplaceUser> {
@@ -50,6 +69,11 @@ export async function requireMarketplaceUser(): Promise<AuthenticatedMarketplace
 
 function createMockTokenId() {
   return `mock_${crypto.randomUUID()}`;
+}
+
+function parseOptionalRequestText(value: string | null | undefined): string | null {
+  const trimmedValue = value?.trim();
+  return trimmedValue ? trimmedValue : null;
 }
 
 export async function createListing(rawInput: unknown): Promise<Listing> {
@@ -97,6 +121,31 @@ export async function listMarketplaceListings(): Promise<Listing[]> {
   return (data ?? []).map((row) => listingSchema.parse(row));
 }
 
+export async function listListingImagesByListingIds(listingIds: string[]): Promise<ListingImage[]> {
+  if (listingIds.length === 0) {
+    return [];
+  }
+
+  await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const { data, error } = await supabase
+    .from("listing_images")
+    .select("*")
+    .in("listing_id", listingIds)
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to load listing images: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => parseListingImage(row));
+}
+
+export async function getListingImages(listingId: string): Promise<ListingImage[]> {
+  return listListingImagesByListingIds([listingId]);
+}
+
 export async function getMarketplaceListingById(id: string): Promise<Listing | null> {
   await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
@@ -126,7 +175,7 @@ export async function getListingRequestsForUser(listingId: string): Promise<List
     .select("*")
     .eq("listing_id", listingId)
     .or(`owner_user_id.eq.${user.id},requester_user_id.eq.${user.id}`)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to load listing requests: ${error.message}`);
@@ -184,7 +233,8 @@ export async function requestListing(
   listingId: string,
   message?: string,
   paymentMethod?: string,
-  handoffLocation?: string
+  handoffLocation?: string,
+  availabilityNote?: string
 ): Promise<ListingRequest> {
   const { user, profile } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
@@ -196,11 +246,28 @@ export async function requestListing(
 
   assertCanRequestListingForProfile(profile, listing, user.id);
 
+  const { data: existingRequest, error: existingRequestError } = await supabase
+    .from("listing_requests")
+    .select("id, status")
+    .eq("listing_id", listingId)
+    .eq("requester_user_id", user.id)
+    .in("status", ["pending", "accepted", "handoff_confirmed"])
+    .maybeSingle();
+
+  if (existingRequestError) {
+    throw new Error(`Failed to check existing request state: ${existingRequestError.message}`);
+  }
+
+  if (existingRequest) {
+    throw new Error("You already have an open request for this listing.");
+  }
+
   const input = createListingRequestInputSchema.parse({
     listing_id: listingId,
-    message,
-    payment_method: paymentMethod,
-    handoff_location: handoffLocation
+    message: parseOptionalRequestText(message) ?? undefined,
+    payment_method: parseOptionalRequestText(paymentMethod) ?? undefined,
+    handoff_location: parseOptionalRequestText(handoffLocation) ?? undefined,
+    availability_note: parseOptionalRequestText(availabilityNote) ?? undefined
   });
 
   const insertPayload = listingRequestSchema.parse({
@@ -217,6 +284,10 @@ export async function requestListing(
     .single();
 
   if (error) {
+    if (error.code === "23505") {
+      throw new Error("You already have an open request for this listing.");
+    }
+
     throw new Error(`Failed to create listing request: ${error.message}`);
   }
 
@@ -273,6 +344,35 @@ export async function acceptRequest(requestId: string): Promise<ListingRequest> 
   return nextRequest;
 }
 
+export async function acceptRequestWithOwnerNote(
+  requestId: string,
+  ownerNote?: string
+): Promise<ListingRequest> {
+  const nextRequest = await acceptRequest(requestId);
+  const note = parseOptionalRequestText(ownerNote);
+
+  if (!note) {
+    return nextRequest;
+  }
+
+  const supabase = await createSupabaseServerAuthClient();
+  const { error } = await supabase
+    .from("listing_requests")
+    .update({
+      owner_note: note
+    })
+    .eq("id", requestId);
+
+  if (error) {
+    throw new Error(`Failed to save owner response: ${error.message}`);
+  }
+
+  return listingRequestSchema.parse({
+    ...nextRequest,
+    owner_note: note
+  });
+}
+
 export async function declineRequest(requestId: string): Promise<ListingRequest> {
   const { user } = await getCurrentMarketplaceActor();
   const supabase = await createSupabaseServerAuthClient();
@@ -288,6 +388,26 @@ export async function declineRequest(requestId: string): Promise<ListingRequest>
 
   if (error) {
     throw new Error(`Failed to decline request: ${error.message}`);
+  }
+
+  return nextRequest;
+}
+
+export async function cancelRequest(requestId: string): Promise<ListingRequest> {
+  const { user, profile } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const request = await getRequestById(requestId);
+  const nextRequest = assertCanCancelRequestForProfile(profile, request, user.id);
+
+  const { error } = await supabase
+    .from("listing_requests")
+    .update({
+      status: nextRequest.status
+    })
+    .eq("id", requestId);
+
+  if (error) {
+    throw new Error(`Failed to cancel request: ${error.message}`);
   }
 
   return nextRequest;
@@ -344,4 +464,205 @@ export async function completeTransfer(requestId: string): Promise<{
     request: nextRequest,
     listing: nextListing
   };
+}
+
+export async function listRequestsReceived(): Promise<MarketplaceRequestSummary[]> {
+  const { user } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const { data, error } = await supabase
+    .from("listing_requests")
+    .select("*")
+    .eq("owner_user_id", user.id)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to load received requests: ${error.message}`);
+  }
+
+  return buildMarketplaceRequestSummaries((data ?? []).map((row) => listingRequestSchema.parse(row)));
+}
+
+export async function listRequestsSent(): Promise<MarketplaceRequestSummary[]> {
+  const { user } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const { data, error } = await supabase
+    .from("listing_requests")
+    .select("*")
+    .eq("requester_user_id", user.id)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to load sent requests: ${error.message}`);
+  }
+
+  return buildMarketplaceRequestSummaries((data ?? []).map((row) => listingRequestSchema.parse(row)));
+}
+
+async function buildMarketplaceRequestSummaries(
+  requests: ListingRequest[]
+): Promise<MarketplaceRequestSummary[]> {
+  if (requests.length === 0) {
+    return [];
+  }
+
+  const listingIds = [...new Set(requests.map((request) => request.listing_id))];
+  const supabase = await createSupabaseServerAuthClient();
+  const { data: listingRows, error } = await supabase
+    .from("listings")
+    .select("*")
+    .in("id", listingIds);
+
+  if (error) {
+    throw new Error(`Failed to load request listings: ${error.message}`);
+  }
+
+  const listingsById = new Map(
+    (listingRows ?? []).map((row) => {
+      const listing = listingSchema.parse(row);
+      return [listing.id!, listing] as const;
+    })
+  );
+  const listingImages = await listListingImagesByListingIds(listingIds);
+  const listingImagesById = new Map<string, ListingImage[]>();
+
+  for (const image of listingImages) {
+    const existingImages = listingImagesById.get(image.listing_id) ?? [];
+    existingImages.push(image);
+    listingImagesById.set(image.listing_id, existingImages);
+  }
+
+  return requests.flatMap((request) => {
+    const listing = listingsById.get(request.listing_id);
+
+    if (!listing) {
+      return [];
+    }
+
+    return [
+      {
+        request,
+        listing,
+        listingImageUrl: getListingCardImageUrl(listing, sortListingImages(listingImagesById.get(listing.id!) ?? []))
+      }
+    ];
+  });
+}
+
+export async function getPendingReceivedRequestCount(): Promise<number> {
+  const { user } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const { count, error } = await supabase
+    .from("listing_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_user_id", user.id)
+    .eq("status", "pending");
+
+  if (error) {
+    throw new Error(`Failed to load pending request count: ${error.message}`);
+  }
+
+  return count ?? 0;
+}
+
+export async function uploadListingImages(
+  listingId: string,
+  files: File[],
+  options?: {
+    requireAtLeastOne?: boolean;
+  }
+): Promise<ListingImage[]> {
+  const { user, profile } = await getCurrentMarketplaceActor();
+  assertCanCreateListingForProfile(profile);
+  const supabase = await createSupabaseServerAuthClient();
+  const listing = await getMarketplaceListingById(listingId);
+
+  if (!listing) {
+    throw new Error("Listing not found.");
+  }
+
+  if (listing.owner_user_id !== user.id) {
+    throw new Error("Only the listing owner can upload images.");
+  }
+
+  const existingImages = await getListingImages(listingId);
+  validateListingImageFiles(files, {
+    requireAtLeastOne: options?.requireAtLeastOne ?? false,
+    existingCount: existingImages.length
+  });
+
+  const uploadedImages: ListingImage[] = [];
+  const uploadedPaths: string[] = [];
+  const insertedImageIds: string[] = [];
+
+  try {
+    for (const [index, file] of files.entries()) {
+      const safeFileName = sanitizeListingImageFileName(file.name);
+      const uniqueFileName = `${existingImages.length + index}-${safeFileName}`;
+      const storagePath = buildListingImageStoragePath(user.id, listingId, uniqueFileName);
+      const uploadResult = await supabase.storage.from(LISTING_IMAGE_BUCKET).upload(storagePath, file, {
+        contentType: file.type,
+        upsert: false
+      });
+
+      if (uploadResult.error) {
+        throw new Error(uploadResult.error.message);
+      }
+
+      uploadedPaths.push(storagePath);
+      const {
+        data: { publicUrl }
+      } = supabase.storage.from(LISTING_IMAGE_BUCKET).getPublicUrl(storagePath);
+
+      const insertPayload = listingImageSchema.parse({
+        listing_id: listingId,
+        user_id: user.id,
+        storage_path: storagePath,
+        public_url: publicUrl,
+        display_order: existingImages.length + index
+      });
+
+      const { data, error } = await supabase
+        .from("listing_images")
+        .insert(insertPayload)
+        .select("*")
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const insertedImage = parseListingImage(data);
+      if (insertedImage.id) {
+        insertedImageIds.push(insertedImage.id);
+      }
+      uploadedImages.push(insertedImage);
+    }
+  } catch (error) {
+    if (insertedImageIds.length > 0) {
+      await supabase.from("listing_images").delete().in("id", insertedImageIds);
+    }
+
+    if (uploadedPaths.length > 0) {
+      await supabase.storage.from(LISTING_IMAGE_BUCKET).remove(uploadedPaths);
+    }
+
+    throw new Error(
+      `Listing created, but image upload failed. You can retry adding images from the listing page. ${error instanceof Error ? error.message : ""}`.trim()
+    );
+  }
+
+  if (existingImages.length === 0 && uploadedImages[0]?.public_url) {
+    const { error } = await supabase
+      .from("listings")
+      .update({
+        image_url: uploadedImages[0].public_url
+      })
+      .eq("id", listingId);
+
+    if (error) {
+      throw new Error(`Images uploaded, but cover image update failed: ${error.message}`);
+    }
+  }
+
+  return sortListingImages([...existingImages, ...uploadedImages]);
 }

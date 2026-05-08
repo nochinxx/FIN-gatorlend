@@ -3,7 +3,9 @@ import Image from "next/image";
 
 import { listProfilesByIds } from "@/lib/auth/profile";
 import { getProfileIdentityLabel } from "@/lib/auth/profile-schema";
-import { listMarketplaceListings } from "@/lib/marketplace/server";
+import { getListingCardImageUrl } from "@/lib/marketplace/listingImages";
+import { listMarketplaceListings, requireMarketplaceUser } from "@/lib/marketplace/server";
+import { listListingImagesByListingIds } from "@/lib/marketplace/server";
 import {
   PUBLIC_ASSET_TYPE_LABELS,
   PUBLIC_ASSET_TYPE_OPTIONS,
@@ -41,14 +43,6 @@ function formatTokenizationStatus(status: Awaited<ReturnType<typeof listMarketpl
   return status.replaceAll("_", " ");
 }
 
-function resolveMarketplaceImage(imageUrl: string | null | undefined) {
-  if (typeof imageUrl === "string" && /^\/(?:images|branding)\/.+\.(?:png|jpe?g|webp)$/i.test(imageUrl)) {
-    return imageUrl;
-  }
-
-  return null;
-}
-
 function ListingImagePlaceholder() {
   return (
     <div
@@ -83,7 +77,18 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   const resolvedSearchParams = await searchParams;
   const assetTypeFilter = resolvedSearchParams.asset_type ?? "";
   const listingTypeFilter = resolvedSearchParams.listing_type ?? "";
+  const currentUser = await requireMarketplaceUser();
   const listings = await listMarketplaceListings();
+  const listingImages = await listListingImagesByListingIds(
+    listings.flatMap((listing) => (listing.id ? [listing.id] : []))
+  );
+  const listingImagesById = new Map<string, typeof listingImages>();
+
+  for (const image of listingImages) {
+    const currentImages = listingImagesById.get(image.listing_id) ?? [];
+    currentImages.push(image);
+    listingImagesById.set(image.listing_id, currentImages);
+  }
   const ownerProfiles = await listProfilesByIds([
     ...new Set(listings.map((listing) => listing.owner_user_id))
   ]);
@@ -179,8 +184,9 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         ) : (
           filteredListings.map((listing) => {
             const badge = getListingBadge(listing);
-            const imageSrc = resolveMarketplaceImage(listing.image_url);
+            const imageSrc = getListingCardImageUrl(listing, listingImagesById.get(listing.id!));
             const ownerLabel = getProfileIdentityLabel(ownerProfilesById.get(listing.owner_user_id));
+            const isOwner = listing.owner_user_id === currentUser.id;
 
             return (
               <article key={listing.id} style={{ padding: "1.15rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
@@ -230,10 +236,28 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                         Exchange preferences: {listing.payment_methods?.length ? listing.payment_methods.join(", ") : "Flexible"}
                       </p>
                     </div>
-                    <div style={{ marginTop: "1rem" }}>
+                    <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                       <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
                         View listing
                       </Link>
+                      {!isOwner ? (
+                        <Link
+                          href={`/listings/${listing.id}#request-form`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "0.7rem 0.95rem",
+                            borderRadius: 999,
+                            background: "#17331d",
+                            color: "#ffffff",
+                            fontWeight: 700,
+                            textDecoration: "none"
+                          }}
+                        >
+                          Send request
+                        </Link>
+                      ) : null}
                     </div>
                   </div>
                 </div>
