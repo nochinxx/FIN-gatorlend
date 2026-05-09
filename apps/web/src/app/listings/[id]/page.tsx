@@ -105,6 +105,32 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
 
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem 4rem" }}>
+      <style>{`
+        .listing-detail-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1.25rem;
+        }
+        .listing-detail-gallery {
+          display: grid;
+          gap: 0.85rem;
+        }
+        .listing-detail-side {
+          display: grid;
+          gap: 1rem;
+        }
+        .listing-request-actions {
+          display: grid;
+          gap: 0.75rem;
+          width: 100%;
+        }
+        @media (min-width: 900px) {
+          .listing-detail-grid {
+            grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+            gap: 1.5rem;
+          }
+        }
+      `}</style>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12 }}>
@@ -139,15 +165,8 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
         </p>
       ) : null}
 
-      <section
-        style={{
-          marginTop: "2rem",
-          display: "grid",
-          gridTemplateColumns: "minmax(240px, 300px) minmax(0, 1fr)",
-          gap: "1.5rem"
-        }}
-      >
-        <div style={{ display: "grid", gap: "0.85rem" }}>
+      <section className="listing-detail-grid" style={{ marginTop: "2rem" }}>
+        <div className="listing-detail-gallery">
           <div style={{ overflow: "hidden", borderRadius: 20, border: "1px solid #ebebeb", position: "relative", aspectRatio: "4 / 5", background: "#f7f7f7" }}>
             {coverImage ? (
               <Image
@@ -193,7 +212,7 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
           ) : null}
         </div>
 
-        <div style={{ display: "grid", gap: "1rem" }}>
+        <div className="listing-detail-side">
           {isOwner ? (
             <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
               <h2 style={{ marginTop: 0, fontSize: "1.1rem" }}>Manage listing photos</h2>
@@ -360,7 +379,7 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
                     </p>
                   </div>
 
-                  <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <div className="listing-request-actions">
                     {request.status === "pending" ? (
                       <div style={{ width: "100%", maxWidth: 420, display: "grid", gap: "0.65rem" }}>
                         <textarea

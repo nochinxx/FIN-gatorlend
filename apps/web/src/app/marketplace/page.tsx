@@ -123,7 +123,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         .marketplace-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 0.9rem;
+          gap: 1rem;
         }
         .marketplace-card-link {
           color: inherit;
@@ -165,24 +165,6 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           white-space: nowrap;
           backdrop-filter: blur(8px);
         }
-        .marketplace-card-title-overlay {
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          padding: 2.3rem 0.8rem 0.75rem;
-          background: linear-gradient(to top, rgba(17,17,17,0.72), rgba(17,17,17,0));
-          color: #ffffff;
-        }
-        .marketplace-card-title-mobile {
-          margin: 0;
-          font-size: 0.98rem;
-          line-height: 1.15;
-          letter-spacing: -0.01em;
-        }
-        .marketplace-card-title-desktop {
-          display: none;
-        }
         .marketplace-card-copy {
           display: grid;
           gap: 0.35rem;
@@ -202,12 +184,6 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           .marketplace-card-pill {
             padding: 0.42rem 0.68rem;
             font-size: 12px;
-          }
-          .marketplace-card-title-overlay {
-            display: none;
-          }
-          .marketplace-card-title-desktop {
-            display: block;
           }
           .marketplace-card-meta {
             display: grid;
@@ -328,16 +304,12 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                         <span className="mobile-only">{badge.mobileLabel}</span>
                       </span>
                     </div>
-
-                    <div className="marketplace-card-title-overlay">
-                      <h2 className="marketplace-card-title-mobile">{listing.title}</h2>
-                    </div>
                   </div>
                   <div className="marketplace-card-copy">
                     <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       {formatMarketplaceAssetTypeLabel(listing.asset_type)}
                     </p>
-                    <h2 className="marketplace-card-title-desktop" style={{ margin: 0, fontSize: "1rem", lineHeight: 1.25 }}>{listing.title}</h2>
+                    <h2 style={{ margin: 0, fontSize: "1rem", lineHeight: 1.2 }}>{listing.title}</h2>
                     <div className="marketplace-card-meta">
                       <p style={{ margin: 0, color: "#4b4b4b", lineHeight: 1.6 }}>
                         {listing.description || "No description added yet."}
