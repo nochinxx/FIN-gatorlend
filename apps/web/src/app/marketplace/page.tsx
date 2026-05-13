@@ -255,7 +255,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             <p style={{ margin: 0 }}>No active listings match the current filters.</p>
           </article>
         ) : (
-          filteredListings.map((listing) => {
+          filteredListings.map((listing, index) => {
             const badge = getListingBadge(listing);
             const imageSrc = getListingCardImageUrl(listing, listingImagesById.get(listing.id!));
             const ownerLabel = getProfileIdentityLabel(ownerProfilesById.get(listing.owner_user_id));
@@ -273,6 +273,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                         src={imageSrc}
                         alt={listing.title}
                         fill
+                        priority={index === 0}
+                        loading={index === 0 ? "eager" : "lazy"}
                         sizes="(max-width: 768px) 100vw, 320px"
                         style={{
                           objectFit: imageSrc.includes("calculator") ? "contain" : "cover",
