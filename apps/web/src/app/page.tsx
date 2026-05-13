@@ -52,7 +52,7 @@ export default async function HomePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) minmax(320px, 0.92fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
             gap: "2rem",
             alignItems: "center"
           }}
@@ -216,7 +216,7 @@ export default async function HomePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 0.88fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
             gap: "2rem",
             alignItems: "start"
           }}
@@ -240,7 +240,7 @@ export default async function HomePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 0.95fr) minmax(320px, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
             gap: "2rem",
             alignItems: "start"
           }}
