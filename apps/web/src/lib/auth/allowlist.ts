@@ -3,7 +3,7 @@ function normalizeAllowedEmail(email: string | null | undefined): string {
 }
 
 function parseTesterEmails(): Set<string> {
-  const raw = process.env.TESTER_EMAILS ?? "";
+  const raw = process.env.NEXT_PUBLIC_TESTER_EMAILS ?? "";
   const emails = new Set<string>();
 
   for (const entry of raw.split(",")) {
