@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { WalletConnectionPanel } from "@/components/WalletConnectionPanel";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { profileNeedsSetup } from "@/lib/auth/profile-schema";
@@ -255,7 +254,6 @@ export default async function HomePage() {
             </p>
           </div>
           <div style={{ display: "grid", gap: "1rem" }}>
-            <WalletConnectionPanel />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
               {LANDING_TOKENIZATION_POINTS.map((item) => (
                 <article
