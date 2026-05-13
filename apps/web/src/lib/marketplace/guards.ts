@@ -6,7 +6,8 @@ import {
   acceptListingRequest,
   assertCanRequestListing,
   cancelListingRequest,
-  completeListingTransfer
+  confirmHandoff,
+  confirmReceipt
 } from "./transitions";
 
 export function assertCanCreateListingForProfile(profile: Pick<Profile, "username"> | null | undefined) {
@@ -31,13 +32,22 @@ export function assertCanAcceptRequestForProfile(
   return acceptListingRequest(request, actingUserId);
 }
 
-export function assertCanCompleteTransferForProfile(
+export function assertCanConfirmHandoffForProfile(
   profile: Pick<Profile, "username"> | null | undefined,
   request: ListingRequest,
   actingUserId: string
 ) {
   assertMarketplaceProfileReady(profile);
-  return completeListingTransfer(request, actingUserId);
+  return confirmHandoff(request, actingUserId);
+}
+
+export function assertCanConfirmReceiptForProfile(
+  profile: Pick<Profile, "username"> | null | undefined,
+  request: ListingRequest,
+  actingUserId: string
+) {
+  assertMarketplaceProfileReady(profile);
+  return confirmReceipt(request, actingUserId);
 }
 
 export function assertCanCancelRequestForProfile(

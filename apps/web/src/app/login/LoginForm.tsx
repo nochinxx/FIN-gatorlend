@@ -126,7 +126,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         // localStorage unavailable — confirm page will fall back to the manual button
       }
 
-      setMessage("Check your email to verify your account. After verification, return here to log in.");
+      setMessage("Check your email to verify your account. If you don't see it, check your spam folder or Outlook quarantine. After verifying, return here to log in.");
       setMode("login");
       setPassword("");
       setConfirmPassword("");

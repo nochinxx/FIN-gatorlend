@@ -34,7 +34,8 @@ import {
 import {
   assertCanAcceptRequestForProfile,
   assertCanCancelRequestForProfile,
-  assertCanCompleteTransferForProfile,
+  assertCanConfirmHandoffForProfile,
+  assertCanConfirmReceiptForProfile,
   assertCanCreateListingForProfile,
   assertCanDeleteListingForProfile,
   assertCanRequestListingForProfile
@@ -468,7 +469,26 @@ export async function cancelRequest(requestId: string): Promise<ListingRequest> 
   return nextRequest;
 }
 
-export async function completeTransfer(requestId: string): Promise<{
+export async function confirmHandoff(requestId: string): Promise<ListingRequest> {
+  const { user, profile } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const request = await getRequestById(requestId);
+
+  const nextRequest = assertCanConfirmHandoffForProfile(profile, request, user.id);
+
+  const { error } = await supabase
+    .from("listing_requests")
+    .update({ status: nextRequest.status })
+    .eq("id", requestId);
+
+  if (error) {
+    throw new Error(`Failed to confirm handoff: ${error.message}`);
+  }
+
+  return nextRequest;
+}
+
+export async function confirmReceipt(requestId: string): Promise<{
   request: ListingRequest;
   listing: Listing;
 }> {
@@ -481,28 +501,22 @@ export async function completeTransfer(requestId: string): Promise<{
     throw new Error("Listing not found.");
   }
 
-  const nextRequest = assertCanCompleteTransferForProfile(profile, request, user.id);
-  const nextListing = transferListingOwnership(listing, user.id, request.requester_user_id);
+  const nextRequest = assertCanConfirmReceiptForProfile(profile, request, user.id);
+  const nextListing = transferListingOwnership(listing, request.owner_user_id, user.id);
   const ownershipEvent = ownershipEventSchema.parse(buildMockOwnershipEvent(listing, request));
 
   const { error: requestError } = await supabase
     .from("listing_requests")
-    .update({
-      status: nextRequest.status,
-      completed_at: nextRequest.completed_at
-    })
+    .update({ status: nextRequest.status, completed_at: nextRequest.completed_at })
     .eq("id", requestId);
 
   if (requestError) {
-    throw new Error(`Failed to complete request: ${requestError.message}`);
+    throw new Error(`Failed to confirm receipt: ${requestError.message}`);
   }
 
   const { error: listingError } = await supabase
     .from("listings")
-    .update({
-      owner_user_id: nextListing.owner_user_id,
-      status: nextListing.status
-    })
+    .update({ owner_user_id: nextListing.owner_user_id, status: nextListing.status })
     .eq("id", listing.id);
 
   if (listingError) {
@@ -515,10 +529,7 @@ export async function completeTransfer(requestId: string): Promise<{
     throw new Error(`Failed to record ownership event: ${eventError.message}`);
   }
 
-  return {
-    request: nextRequest,
-    listing: nextListing
-  };
+  return { request: nextRequest, listing: nextListing };
 }
 
 export async function listRequestsReceived(): Promise<MarketplaceRequestSummary[]> {

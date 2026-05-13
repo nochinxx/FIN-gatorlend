@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import {
   acceptRequestWithOwnerNote,
   cancelRequest,
-  completeTransfer,
+  confirmHandoff,
+  confirmReceipt,
   declineRequest,
   dismissRequest,
   requestListing,
@@ -95,19 +96,38 @@ export async function declineRequestAction(formData: FormData) {
   redirect(destination);
 }
 
-export async function completeTransferAction(formData: FormData) {
+export async function confirmHandoffAction(formData: FormData) {
   const listingId = getListingId(formData);
-  const requestId = String(formData.get("request_id") ?? "");
-  let destination = getRedirectTo(formData, `/listings/${listingId}?notice=completed`);
+  const rawHandoffRequestId = formData.get("request_id");
+  const requestId = typeof rawHandoffRequestId === "string" ? rawHandoffRequestId : "";
+  let destination = getRedirectTo(formData, "/requests?notice=handoff-confirmed");
 
   try {
-    await completeTransfer(requestId);
+    await confirmHandoff(requestId);
+    revalidatePath(`/listings/${listingId}`);
+    revalidatePath("/requests");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to confirm handoff.";
+    destination = buildErrorDestination(destination, listingId, message);
+  }
+
+  redirect(destination);
+}
+
+export async function confirmReceiptAction(formData: FormData) {
+  const listingId = getListingId(formData);
+  const rawReceiptRequestId = formData.get("request_id");
+  const requestId = typeof rawReceiptRequestId === "string" ? rawReceiptRequestId : "";
+  let destination = getRedirectTo(formData, "/requests?notice=receipt-confirmed");
+
+  try {
+    await confirmReceipt(requestId);
     revalidatePath(`/listings/${listingId}`);
     revalidatePath("/marketplace");
     revalidatePath("/my-listings");
     revalidatePath("/requests");
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to complete transfer.";
+    const message = error instanceof Error ? error.message : "Failed to confirm receipt.";
     destination = buildErrorDestination(destination, listingId, message);
   }
 

@@ -11,7 +11,8 @@ import { type MarketplaceRequestSummary, listRequestsReceived, listRequestsSent 
 import {
   acceptRequestAction,
   cancelRequestAction,
-  completeTransferAction,
+  confirmHandoffAction,
+  confirmReceiptAction,
   declineRequestAction,
   dismissRequestAction
 } from "../listings/[id]/actions";
@@ -55,7 +56,7 @@ function formatRequestTime(value: string | null | undefined) {
   return new Date(value).toLocaleString();
 }
 
-const TERMINAL_STATUSES = ["completed", "declined", "cancelled", "disputed"];
+const TERMINAL_STATUSES = new Set(["completed", "declined", "cancelled", "disputed"]);
 
 type RequestCardActionsProps = {
   listing: MarketplaceRequestSummary["listing"];
@@ -66,7 +67,7 @@ type RequestCardActionsProps = {
 function RequestCardActions({ listing, request, mode }: RequestCardActionsProps) {
   const acceptFormId = `accept-request-${request.id}`;
   const declineFormId = `decline-request-${request.id}`;
-  const isTerminal = TERMINAL_STATUSES.includes(request.status);
+  const isTerminal = TERMINAL_STATUSES.has(request.status);
 
   return (
     <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
@@ -111,15 +112,29 @@ function RequestCardActions({ listing, request, mode }: RequestCardActionsProps)
       ) : null}
 
       {mode === "received" && request.status === "accepted" ? (
-        <form action={completeTransferAction}>
+        <form action={confirmHandoffAction}>
           <input type="hidden" name="listing_id" value={listing.id} />
           <input type="hidden" name="request_id" value={request.id} />
-          <input type="hidden" name="redirect_to" value="/requests?notice=completed" />
+          <input type="hidden" name="redirect_to" value="/requests?notice=handoff-confirmed" />
           <FormSubmitButton
-            pendingLabel="Completing..."
+            pendingLabel="Confirming..."
             style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}
           >
-            Complete transfer
+            Mark as handed off
+          </FormSubmitButton>
+        </form>
+      ) : null}
+
+      {mode === "sent" && request.status === "handoff_confirmed" ? (
+        <form action={confirmReceiptAction}>
+          <input type="hidden" name="listing_id" value={listing.id} />
+          <input type="hidden" name="request_id" value={request.id} />
+          <input type="hidden" name="redirect_to" value="/requests?notice=receipt-confirmed" />
+          <FormSubmitButton
+            pendingLabel="Confirming..."
+            style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: 0, background: "#1f7a36", color: "#ffffff", fontWeight: 700 }}
+          >
+            Confirm receipt
           </FormSubmitButton>
         </form>
       ) : null}
@@ -259,7 +274,14 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
 
       {resolvedSearchParams.notice ? (
         <p style={{ marginTop: "1.5rem", padding: "0.9rem 1rem", borderRadius: 12, background: "#edf7ef", color: "#1f5f30" }}>
-          Action completed: {resolvedSearchParams.notice}
+          {{
+            accepted: "Request accepted.",
+            declined: "Request declined.",
+            cancelled: "Request cancelled.",
+            dismissed: "Request dismissed.",
+            "handoff-confirmed": "Handoff confirmed — waiting for the requester to confirm receipt.",
+            "receipt-confirmed": "Receipt confirmed. Ownership has been transferred."
+          }[resolvedSearchParams.notice] ?? `Action completed: ${resolvedSearchParams.notice}`}
         </p>
       ) : null}
 

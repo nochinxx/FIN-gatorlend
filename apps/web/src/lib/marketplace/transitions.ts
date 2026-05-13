@@ -63,13 +63,28 @@ export function cancelListingRequest(request: ListingRequest, actingUserId: stri
   });
 }
 
-export function completeListingTransfer(request: ListingRequest, actingUserId: string): ListingRequest {
+export function confirmHandoff(request: ListingRequest, actingUserId: string): ListingRequest {
   if (request.owner_user_id !== actingUserId) {
-    throw new Error("Only the listing owner can complete this transfer.");
+    throw new Error("Only the listing owner can confirm the handoff.");
   }
 
   if (request.status !== "accepted") {
-    throw new Error("Only accepted requests can be completed.");
+    throw new Error("Only accepted requests can be marked as handed off.");
+  }
+
+  return listingRequestSchema.parse({
+    ...request,
+    status: "handoff_confirmed"
+  });
+}
+
+export function confirmReceipt(request: ListingRequest, actingUserId: string): ListingRequest {
+  if (request.requester_user_id !== actingUserId) {
+    throw new Error("Only the requester can confirm receipt.");
+  }
+
+  if (request.status !== "handoff_confirmed") {
+    throw new Error("The owner must confirm the handoff before you can confirm receipt.");
   }
 
   return listingRequestSchema.parse({

@@ -19,7 +19,7 @@ import {
 import {
   acceptRequestAction,
   cancelRequestAction,
-  completeTransferAction,
+  confirmHandoffAction,
   declineRequestAction,
   requestListingAction,
   uploadListingImagesAction
@@ -419,17 +419,17 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
                     {request.status === "accepted" ? (
                       <div style={{ display: "grid", gap: "0.5rem" }}>
                         <p style={{ margin: 0, maxWidth: 280, color: "#4a4a4a" }}>
-                          Use completion only after both sides confirm that the handoff is done.
+                          Mark as handed off once you have physically given the item. The requester will then confirm receipt to complete the transfer.
                         </p>
-                        <form action={completeTransferAction}>
+                        <form action={confirmHandoffAction}>
                           <input type="hidden" name="listing_id" value={listing.id} />
                           <input type="hidden" name="request_id" value={request.id} />
-                          <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=completed`} />
+                          <input type="hidden" name="redirect_to" value={`/listings/${listing.id}?notice=handoff-confirmed`} />
                           <FormSubmitButton
-                            pendingLabel="Completing..."
+                            pendingLabel="Confirming..."
                             style={{ padding: "0.75rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}
                           >
-                            Complete transfer
+                            Mark as handed off
                           </FormSubmitButton>
                         </form>
                       </div>
