@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { FOOTER_DISCLAIMER } from "@/lib/marketing/publicContent";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <AppHeader />
         {children}
+        <FeedbackButton />
         <footer
           style={{
             borderTop: "1px solid #ebebeb",
