@@ -122,12 +122,19 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
       <style>{`
         .marketplace-grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: 1fr;
           gap: 1rem;
+        }
+        @media (min-width: 580px) {
+          .marketplace-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
         }
         .marketplace-card-link {
           color: inherit;
           text-decoration: none;
+          display: block;
+          height: 100%;
         }
         .marketplace-card {
           padding: 0.8rem;

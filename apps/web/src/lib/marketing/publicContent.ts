@@ -10,7 +10,7 @@ export const FOOTER_DISCLAIMER =
   "Independent student-built pilot for verified school-email users. Not affiliated with, sponsored by, or endorsed by SFSU or CSU. GatorLend does not process payments or hold funds, guarantee listings, or manage disputes.";
 
 export const CURRENT_MVP_LINE =
-  "Current MVP: school-email access, mock listings, request flow, and internal ownership tracking.";
+  "Current MVP: school-email access, listings, request flow, and internal ownership tracking.";
 
 export const ADVANCED_LAYER_LINE =
   "Advanced layer: optional XRPL testnet minting for selected demo assets.";
@@ -24,7 +24,7 @@ export const LANDING_HOW_IT_WORKS = [
   {
     title: "Create a demo listing",
     description:
-      "Create a demo listing for an academic item such as a textbook, calculator, lab coat, or goggles. The platform creates an internal mock asset record for tracking."
+      "Create a demo listing for an academic item such as a textbook, calculator, or lab coat. The platform creates an internal asset record for tracking."
   },
   {
     title: "Request and confirm handoff",
@@ -38,7 +38,7 @@ export const LANDING_FEATURED_ITEMS = [
     name: "Lab Coat",
     context: "BIO101",
     label: "Pilot example",
-    recordLabel: "Mock Asset ID",
+    recordLabel: "Asset ID",
     recordId: "mock_lab_coat_01",
     image: "/images/lab-coat.jpeg"
   },
@@ -46,7 +46,7 @@ export const LANDING_FEATURED_ITEMS = [
     name: "Calculator",
     context: "MATH226",
     label: "Demo listing",
-    recordLabel: "Mock Asset ID",
+    recordLabel: "Asset ID",
     recordId: "mock_calculator_01",
     image: "/images/calculator.jpeg"
   },
@@ -54,7 +54,7 @@ export const LANDING_FEATURED_ITEMS = [
     name: "Textbook",
     context: "CSU340",
     label: "Mock record",
-    recordLabel: "Mock Asset ID",
+    recordLabel: "Asset ID",
     recordId: "mock_textbook_01",
     image: "/images/textbook.jpg"
   }

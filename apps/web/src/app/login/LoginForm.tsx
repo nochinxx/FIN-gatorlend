@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/access";
 import { MIN_PASSWORD_LENGTH, validatePassword } from "@/lib/auth/password";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { PENDING_CONFIRM_EMAIL_KEY } from "@/lib/auth/confirm-key";
 
 type LoginFormProps = {
   nextPath: string;
@@ -117,6 +118,12 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
       if (!response.ok) {
         throw new Error(result.error ?? "Unable to send verification email. Please try again in a few minutes.");
+      }
+
+      try {
+        localStorage.setItem(PENDING_CONFIRM_EMAIL_KEY, email.trim().toLowerCase());
+      } catch {
+        // localStorage unavailable — confirm page will fall back to the manual button
       }
 
       setMessage("Check your email to verify your account. After verification, return here to log in.");
@@ -352,10 +359,6 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         </p>
       ) : null}
 
-      <p style={{ margin: 0, color: "#5a5a5a", lineHeight: 1.5, fontSize: 14 }}>
-        Supabase handles signup, email verification, password login, password reset, and sessions.
-        Wallet connection stays optional and separate from auth.
-      </p>
     </div>
   );
 }

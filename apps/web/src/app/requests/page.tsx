@@ -12,7 +12,8 @@ import {
   acceptRequestAction,
   cancelRequestAction,
   completeTransferAction,
-  declineRequestAction
+  declineRequestAction,
+  dismissRequestAction
 } from "../listings/[id]/actions";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +55,106 @@ function formatRequestTime(value: string | null | undefined) {
   return new Date(value).toLocaleString();
 }
 
+const TERMINAL_STATUSES = ["completed", "declined", "cancelled", "disputed"];
+
+type RequestCardActionsProps = {
+  listing: MarketplaceRequestSummary["listing"];
+  request: MarketplaceRequestSummary["request"];
+  mode: "received" | "sent";
+};
+
+function RequestCardActions({ listing, request, mode }: RequestCardActionsProps) {
+  const acceptFormId = `accept-request-${request.id}`;
+  const declineFormId = `decline-request-${request.id}`;
+  const isTerminal = TERMINAL_STATUSES.includes(request.status);
+
+  return (
+    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
+      <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
+        View listing
+      </Link>
+
+      {mode === "received" && request.status === "pending" ? (
+        <div style={{ width: "100%", maxWidth: 420, display: "grid", gap: "0.65rem" }}>
+          <textarea
+            name="owner_note"
+            form={acceptFormId}
+            rows={2}
+            placeholder="Accepted. Suggested meetup details..."
+            style={{ width: "100%", padding: "0.8rem 0.9rem", borderRadius: 14, border: "1px solid #d7d7d7", resize: "vertical" }}
+          />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "0.65rem" }}>
+            <form id={acceptFormId} action={acceptRequestAction}>
+              <input type="hidden" name="listing_id" value={listing.id} />
+              <input type="hidden" name="request_id" value={request.id} />
+              <input type="hidden" name="redirect_to" value="/requests?notice=accepted" />
+              <FormSubmitButton
+                pendingLabel="Accepting..."
+                style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#1f7a36", color: "#ffffff", fontWeight: 700 }}
+              >
+                Accept
+              </FormSubmitButton>
+            </form>
+            <form id={declineFormId} action={declineRequestAction}>
+              <input type="hidden" name="listing_id" value={listing.id} />
+              <input type="hidden" name="request_id" value={request.id} />
+              <input type="hidden" name="redirect_to" value="/requests?notice=declined" />
+              <FormSubmitButton
+                pendingLabel="Declining..."
+                style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}
+              >
+                Decline
+              </FormSubmitButton>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {mode === "received" && request.status === "accepted" ? (
+        <form action={completeTransferAction}>
+          <input type="hidden" name="listing_id" value={listing.id} />
+          <input type="hidden" name="request_id" value={request.id} />
+          <input type="hidden" name="redirect_to" value="/requests?notice=completed" />
+          <FormSubmitButton
+            pendingLabel="Completing..."
+            style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}
+          >
+            Complete transfer
+          </FormSubmitButton>
+        </form>
+      ) : null}
+
+      {mode === "sent" && request.status === "pending" ? (
+        <form action={cancelRequestAction}>
+          <input type="hidden" name="listing_id" value={listing.id} />
+          <input type="hidden" name="request_id" value={request.id} />
+          <input type="hidden" name="redirect_to" value="/requests?notice=cancelled" />
+          <FormSubmitButton
+            pendingLabel="Cancelling..."
+            style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: "1px solid #d7d7d7", background: "#ffffff", color: "#111111", fontWeight: 700 }}
+          >
+            Cancel request
+          </FormSubmitButton>
+        </form>
+      ) : null}
+
+      {isTerminal ? (
+        <form action={dismissRequestAction}>
+          <input type="hidden" name="listing_id" value={listing.id} />
+          <input type="hidden" name="request_id" value={request.id} />
+          <input type="hidden" name="redirect_to" value="/requests?notice=dismissed" />
+          <FormSubmitButton
+            pendingLabel="Dismissing..."
+            style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: "none", background: "transparent", color: "#888888", fontWeight: 400, fontSize: 14 }}
+          >
+            Dismiss
+          </FormSubmitButton>
+        </form>
+      ) : null}
+    </div>
+  );
+}
+
 type RequestCardProps = {
   item: MarketplaceRequestSummary;
   counterpartLabel: string;
@@ -63,8 +164,6 @@ type RequestCardProps = {
 
 function RequestCard({ item, counterpartLabel, counterpartTitle, mode }: RequestCardProps) {
   const { listing, request, listingImageUrl } = item;
-  const acceptFormId = `accept-request-${request.id}`;
-  const declineFormId = `decline-request-${request.id}`;
 
   return (
     <article style={{ padding: "1.25rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
@@ -117,75 +216,7 @@ function RequestCard({ item, counterpartLabel, counterpartTitle, mode }: Request
             {request.completed_at ? ` · Completed: ${formatRequestTime(request.completed_at)}` : ""}
           </p>
 
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
-            <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
-              View listing
-            </Link>
-
-            {mode === "received" && request.status === "pending" ? (
-              <div style={{ width: "100%", maxWidth: 420, display: "grid", gap: "0.65rem" }}>
-                <textarea
-                  name="owner_note"
-                  form={acceptFormId}
-                  rows={2}
-                  placeholder="Accepted. Suggested meetup details..."
-                  style={{ width: "100%", padding: "0.8rem 0.9rem", borderRadius: 14, border: "1px solid #d7d7d7", resize: "vertical" }}
-                />
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "0.65rem" }}>
-                  <form id={acceptFormId} action={acceptRequestAction}>
-                    <input type="hidden" name="listing_id" value={listing.id} />
-                    <input type="hidden" name="request_id" value={request.id} />
-                    <input type="hidden" name="redirect_to" value="/requests?notice=accepted" />
-                    <FormSubmitButton
-                      pendingLabel="Accepting..."
-                      style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#1f7a36", color: "#ffffff", fontWeight: 700 }}
-                    >
-                      Accept
-                    </FormSubmitButton>
-                  </form>
-                  <form id={declineFormId} action={declineRequestAction}>
-                    <input type="hidden" name="listing_id" value={listing.id} />
-                    <input type="hidden" name="request_id" value={request.id} />
-                    <input type="hidden" name="redirect_to" value="/requests?notice=declined" />
-                    <FormSubmitButton
-                      pendingLabel="Declining..."
-                      style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}
-                    >
-                      Decline
-                    </FormSubmitButton>
-                  </form>
-                </div>
-              </div>
-            ) : null}
-
-            {mode === "received" && request.status === "accepted" ? (
-              <form action={completeTransferAction}>
-                <input type="hidden" name="listing_id" value={listing.id} />
-                <input type="hidden" name="request_id" value={request.id} />
-                <input type="hidden" name="redirect_to" value="/requests?notice=completed" />
-                <FormSubmitButton
-                  pendingLabel="Completing..."
-                  style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: 0, background: "#111111", color: "#ffffff", fontWeight: 700 }}
-                >
-                  Complete transfer
-                </FormSubmitButton>
-              </form>
-            ) : null}
-
-            {mode === "sent" && request.status === "pending" ? (
-              <form action={cancelRequestAction}>
-                <input type="hidden" name="listing_id" value={listing.id} />
-                <input type="hidden" name="request_id" value={request.id} />
-                <input type="hidden" name="redirect_to" value="/requests?notice=cancelled" />
-                <FormSubmitButton
-                  pendingLabel="Cancelling..."
-                  style={{ padding: "0.7rem 0.95rem", borderRadius: 999, border: "1px solid #d7d7d7", background: "#ffffff", color: "#111111", fontWeight: 700 }}
-                >
-                  Cancel request
-                </FormSubmitButton>
-              </form>
-            ) : null}
-          </div>
+          <RequestCardActions listing={listing} request={request} mode={mode} />
         </div>
       </div>
     </article>

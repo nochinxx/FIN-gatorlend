@@ -528,6 +528,7 @@ export async function listRequestsReceived(): Promise<MarketplaceRequestSummary[
     .from("listing_requests")
     .select("*")
     .eq("owner_user_id", user.id)
+    .is("dismissed_by_owner_at", null)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -544,6 +545,7 @@ export async function listRequestsSent(): Promise<MarketplaceRequestSummary[]> {
     .from("listing_requests")
     .select("*")
     .eq("requester_user_id", user.id)
+    .is("dismissed_by_requester_at", null)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -551,6 +553,37 @@ export async function listRequestsSent(): Promise<MarketplaceRequestSummary[]> {
   }
 
   return buildMarketplaceRequestSummaries((data ?? []).map((row) => listingRequestSchema.parse(row)));
+}
+
+export async function dismissRequest(requestId: string): Promise<void> {
+  const { user } = await getCurrentMarketplaceActor();
+  const supabase = await createSupabaseServerAuthClient();
+  const request = await getRequestById(requestId);
+
+  const isOwner = request.owner_user_id === user.id;
+  const isRequester = request.requester_user_id === user.id;
+
+  if (!isOwner && !isRequester) {
+    throw new Error("You are not a party to this request.");
+  }
+
+  const TERMINAL_STATUSES = ["completed", "declined", "cancelled", "disputed"];
+
+  if (!TERMINAL_STATUSES.includes(request.status)) {
+    throw new Error("Only completed, declined, cancelled, or disputed requests can be dismissed.");
+  }
+
+  const field = isOwner ? "dismissed_by_owner_at" : "dismissed_by_requester_at";
+  const now = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("listing_requests")
+    .update({ [field]: now })
+    .eq("id", requestId);
+
+  if (error) {
+    throw new Error(`Failed to dismiss request: ${error.message}`);
+  }
 }
 
 async function buildMarketplaceRequestSummaries(

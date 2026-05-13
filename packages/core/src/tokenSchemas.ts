@@ -222,6 +222,8 @@ export const listingRequestSchema = z.object({
   requested_at: z.string().optional(),
   accepted_at: z.string().optional().nullable(),
   completed_at: z.string().optional().nullable(),
+  dismissed_by_owner_at: z.string().optional().nullable(),
+  dismissed_by_requester_at: z.string().optional().nullable(),
   created_at: z.string().optional(),
   updated_at: z.string().optional()
 });

@@ -1,6 +1,5 @@
 export const DEFAULT_MARKETPLACE_ASSET_TYPE_SUGGESTIONS = [
   "textbook",
-  "goggles",
   "lab coat"
 ] as const;
 

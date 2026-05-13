@@ -218,7 +218,14 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Condition</span>
-          <input name="condition" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+          <select name="condition" defaultValue="" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
+            <option value="" disabled>Select condition</option>
+            <option value="new">New</option>
+            <option value="like_new">Like new</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="worn">Worn</option>
+          </select>
         </label>
       </div>
 
@@ -238,15 +245,7 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
         <input name="payment_methods" placeholder="meet near library, weekday afternoon, flexible" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
       </label>
 
-      <label style={{ display: "grid", gap: "0.35rem" }}>
-        <span>Metadata JSON</span>
-        <textarea
-          name="metadata"
-          rows={6}
-          defaultValue={"{}"}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7", fontFamily: 'ui-monospace, SFMono-Regular, monospace' }}
-        />
-      </label>
+      <input type="hidden" name="metadata" value="{}" />
 
       {localError || state.error ? (
         <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#fff3ef", color: "#7f2413" }}>

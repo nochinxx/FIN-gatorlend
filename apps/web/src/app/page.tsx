@@ -138,7 +138,7 @@ export default async function HomePage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
           <div>
             <p style={sectionLabelStyle}>Featured Items</p>
-            <h2 style={{ margin: "0.55rem 0 0", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Example pilot categories</h2>
+            <h2 style={{ margin: "0.55rem 0 0", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Example categories</h2>
           </div>
           <p style={{ margin: 0, color: "#555555", maxWidth: 420 }}>
             The first release focuses on simple academic items that are easy to understand, easy to verify visually, and useful for testing the request and handoff flow.
@@ -251,7 +251,7 @@ export default async function HomePage() {
               Tokenization is an optional verification layer, not a first step.
             </h2>
             <p style={{ margin: 0, color: "#525252", lineHeight: 1.65 }}>
-              The marketplace flow works with school-email access and Supabase-tracked ownership. For selected demo assets, the XRPL testnet flow can mint an XLS-20 NFT and compare on-chain state against marketplace metadata. This is used for learning, verification experiments, and technical demonstration.
+              The marketplace flow works with school-email access and tracked ownership. For selected demo assets, the XRPL testnet flow can mint an XLS-20 NFT and compare on-chain state against marketplace metadata. This is used for learning, verification experiments, and technical demonstration.
             </p>
           </div>
           <div style={{ display: "grid", gap: "1rem" }}>

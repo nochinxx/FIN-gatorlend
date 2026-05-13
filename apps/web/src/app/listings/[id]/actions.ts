@@ -8,6 +8,7 @@ import {
   cancelRequest,
   completeTransfer,
   declineRequest,
+  dismissRequest,
   requestListing,
   uploadListingImages
 } from "@/lib/marketplace/server";
@@ -127,6 +128,24 @@ export async function cancelRequestAction(formData: FormData) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to cancel request.";
     destination = buildErrorDestination(destination, listingId, message);
+  }
+
+  redirect(destination);
+}
+
+export async function dismissRequestAction(formData: FormData) {
+  const listingId = getListingId(formData);
+  const rawRequestId = formData.get("request_id");
+  const requestId = typeof rawRequestId === "string" ? rawRequestId : "";
+  const destination = getRedirectTo(formData, "/requests?notice=dismissed");
+
+  try {
+    await dismissRequest(requestId);
+    revalidatePath(`/listings/${listingId}`);
+    revalidatePath("/requests");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to dismiss request.";
+    redirect(`/requests?error=${encodeURIComponent(message)}`);
   }
 
   redirect(destination);
