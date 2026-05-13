@@ -30,29 +30,32 @@ function formatNetworkDisplay(network: WalletState["network"]): string {
 export function WalletConnectionPanel() {
   const adapterRef = useRef<CrossmarkAdapter | null>(null);
   const [state, setState] = useState<WalletPanelState>(initialState);
+  const [desktopOnly, setDesktopOnly] = useState(false);
 
   useEffect(() => {
-    const adapter = new CrossmarkAdapter();
+    let adapter: CrossmarkAdapter;
+
+    try {
+      adapter = new CrossmarkAdapter();
+    } catch {
+      setDesktopOnly(true);
+      return;
+    }
+
     adapterRef.current = adapter;
 
     const unsubscribe = adapter.subscribe((walletState) => {
-      setState((current) => ({
-        ...current,
-        ...walletState
-      }));
+      setState((current) => ({ ...current, ...walletState }));
     });
 
     const syncFromAdapter = () => {
-      setState((current) => ({
-        ...current,
-        ...adapter.refreshState()
-      }));
+      setState((current) => ({ ...current, ...adapter.refreshState() }));
     };
 
-    window.addEventListener("focus", syncFromAdapter);
+    globalThis.addEventListener("focus", syncFromAdapter);
 
     return () => {
-      window.removeEventListener("focus", syncFromAdapter);
+      globalThis.removeEventListener("focus", syncFromAdapter);
       unsubscribe();
     };
   }, []);
@@ -98,6 +101,17 @@ export function WalletConnectionPanel() {
       ...adapter.getState(),
       error: null,
     });
+  }
+
+  if (desktopOnly) {
+    return (
+      <section style={{ padding: "1.25rem", borderRadius: 18, background: "#ffffff", border: "1px solid #ebebeb" }}>
+        <h2 style={{ margin: 0, fontSize: "1rem" }}>Wallet</h2>
+        <p style={{ margin: "0.5rem 0 0", color: "#5c5c5c", lineHeight: 1.5 }}>
+          Crossmark wallet connection is only available on desktop browsers.
+        </p>
+      </section>
+    );
   }
 
   return (
