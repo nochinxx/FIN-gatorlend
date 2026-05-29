@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const ITEMS = ["📚", "🧮", "📐", "🥼", "📓", "🔬", "📏", "💡"];
+const ITEMS = ["CALC", "BIO", "CHEM", "MATH", "LAB", "HIST", "ENG", "PHYS"];
 
 type Particle = {
   id: number;
@@ -211,14 +211,28 @@ export function GatorChase({ width = 600, height = 180 }: { width?: number; heig
       // Draw
       safeCtx.clearRect(0, 0, W, H);
 
-      // Items
+      // Items — pill labels
       state.particles.forEach((p) => {
         if (p.opacity <= 0) return;
         safeCtx.save();
         safeCtx.globalAlpha = Math.max(0, p.opacity);
-        safeCtx.font = `${ITEM_SIZE * p.scale}px serif`;
+        const w = ITEM_SIZE * p.scale * 2.2;
+        const h = ITEM_SIZE * p.scale * 0.9;
+        const rx = h / 2;
+        // Pill background
+        safeCtx.fillStyle = "#1a1a1a";
+        safeCtx.strokeStyle = "#2a2a2a";
+        safeCtx.lineWidth = 1;
+        safeCtx.beginPath();
+        safeCtx.roundRect(p.x - w / 2, p.y - h / 2, w, h, rx);
+        safeCtx.fill();
+        safeCtx.stroke();
+        // Label text
+        safeCtx.fillStyle = "#4ade80";
+        safeCtx.font = `600 ${10 * p.scale}px ui-monospace, monospace`;
         safeCtx.textAlign = "center";
         safeCtx.textBaseline = "middle";
+        safeCtx.letterSpacing = "0.08em";
         safeCtx.fillText(p.emoji, p.x, p.y);
         safeCtx.restore();
       });
