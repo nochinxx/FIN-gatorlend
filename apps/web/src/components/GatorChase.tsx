@@ -2,13 +2,151 @@
 
 import { useEffect, useRef } from "react";
 
-const ITEMS = ["CALC", "BIO", "CHEM", "MATH", "LAB", "HIST", "ENG", "PHYS"];
+// Pixel size — all coordinates are in "pixels", scaled up by P
+const P = 4;
+
+// ── Gator sprite (pixel grid, 1 = filled) ───────────────────────────────────
+// Each row: [startCol, endCol] filled, relative to gator origin (top-left of body)
+// Width ≈ 24px, Height ≈ 12px (in pixel units)
+
+function drawPixelRect(
+  ctx: CanvasRenderingContext2D,
+  col: number, row: number,
+  w: number, h: number
+) {
+  ctx.fillRect(col * P, row * P, w * P, h * P);
+}
+
+function drawGator(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  dir: 1 | -1,
+  frame: number,
+  mouthOpen: boolean
+) {
+  ctx.save();
+  ctx.translate(Math.round(cx), Math.round(cy));
+  if (dir === -1) ctx.scale(-1, 1);
+
+  ctx.fillStyle = "#e8e8e8";
+
+  // ── Tail ──────────────────────────────────────────────
+  drawPixelRect(ctx, -7, -3, 3, 2); // tail tip
+  drawPixelRect(ctx, -5, -4, 2, 3); // tail mid
+
+  // ── Body ──────────────────────────────────────────────
+  drawPixelRect(ctx, -3, -5, 15, 4); // main body slab
+
+  // ── Ridge / back bumps (top of body) ─────────────────
+  drawPixelRect(ctx, 1, -7, 2, 2);
+  drawPixelRect(ctx, 5, -7, 2, 2);
+  drawPixelRect(ctx, 9, -7, 2, 2);
+
+  // ── Head ──────────────────────────────────────────────
+  drawPixelRect(ctx, 12, -6, 4, 3); // head block
+  drawPixelRect(ctx, 16, -5, 2, 2); // snout connect
+
+  // ── Upper jaw ─────────────────────────────────────────
+  drawPixelRect(ctx, 18, -4, 6, 2);
+
+  // ── Lower jaw (drops 1px when open) ───────────────────
+  const jawDrop = mouthOpen ? 1 : 0;
+  drawPixelRect(ctx, 19, -2 + jawDrop, 5, 2);
+
+  // ── Eye (dark square inside bright area) ──────────────
+  drawPixelRect(ctx, 13, -8, 3, 2); // eye bump
+  ctx.fillStyle = "#080808";
+  drawPixelRect(ctx, 14, -8, 2, 2); // pupil
+  ctx.fillStyle = "#e8e8e8";
+
+  // ── Nostrils ──────────────────────────────────────────
+  ctx.fillStyle = "#080808";
+  drawPixelRect(ctx, 22, -4, 1, 1);
+  ctx.fillStyle = "#e8e8e8";
+
+  // ── Legs — 2-frame walk cycle ─────────────────────────
+  const legFrame = Math.floor(frame / 8) % 2;
+  if (legFrame === 0) {
+    // Front leg forward, back leg back
+    drawPixelRect(ctx, 1, -1, 2, 3);   // back leg down
+    drawPixelRect(ctx, 9, -2, 2, 2);   // front leg tucked
+  } else {
+    // Front leg down, back leg tucked
+    drawPixelRect(ctx, 1, -2, 2, 2);   // back leg tucked
+    drawPixelRect(ctx, 9, -1, 2, 3);   // front leg down
+  }
+
+  ctx.restore();
+}
+
+// ── Item sprites (pixel art, no emoji) ───────────────────────────────────────
+
+type ItemKind = "book" | "calc" | "flask" | "ruler";
+const ITEM_KINDS: ItemKind[] = ["book", "calc", "flask", "ruler"];
+
+function drawItem(
+  ctx: CanvasRenderingContext2D,
+  kind: ItemKind,
+  cx: number,
+  cy: number,
+  scale: number
+) {
+  ctx.save();
+  ctx.translate(Math.round(cx), Math.round(cy));
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#e8e8e8";
+
+  if (kind === "book") {
+    // Book: stacked pages with spine
+    drawPixelRect(ctx, -3, -4, 6, 8); // cover
+    ctx.fillStyle = "#080808";
+    drawPixelRect(ctx, -3, -4, 1, 8); // spine
+    ctx.fillStyle = "#e8e8e8";
+    drawPixelRect(ctx, -1, -3, 3, 1); // page line
+    drawPixelRect(ctx, -1, -1, 3, 1);
+    drawPixelRect(ctx, -1, 1, 3, 1);
+  } else if (kind === "calc") {
+    // Calculator: rect with button grid
+    drawPixelRect(ctx, -3, -5, 6, 10); // body
+    ctx.fillStyle = "#080808";
+    drawPixelRect(ctx, -2, -4, 4, 2);  // screen
+    // Buttons
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 3; c++) {
+        drawPixelRect(ctx, -2 + c * 2, 0 + r * 2, 1, 1);
+      }
+    }
+    ctx.fillStyle = "#e8e8e8";
+  } else if (kind === "flask") {
+    // Flask/beaker: wide bottom, narrow neck
+    drawPixelRect(ctx, -1, -5, 2, 2);  // neck
+    drawPixelRect(ctx, -2, -3, 4, 1);  // shoulder
+    drawPixelRect(ctx, -3, -2, 6, 5);  // body
+    ctx.fillStyle = "#080808";
+    drawPixelRect(ctx, -1, -4, 2, 1);  // inner neck
+    ctx.fillStyle = "#e8e8e8";
+    drawPixelRect(ctx, -2, 0, 3, 1);   // liquid line
+  } else {
+    // Ruler: long thin horizontal bar with tick marks
+    drawPixelRect(ctx, -5, -1, 10, 3);
+    ctx.fillStyle = "#080808";
+    for (let t = -3; t <= 3; t += 2) {
+      drawPixelRect(ctx, t, -1, 1, 1);
+    }
+    ctx.fillStyle = "#e8e8e8";
+  }
+
+  ctx.restore();
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type Particle = {
   id: number;
-  emoji: string;
+  kind: ItemKind;
   x: number;
   y: number;
+  baseY: number;
   eaten: boolean;
   opacity: number;
   scale: number;
@@ -19,17 +157,25 @@ type Gator = {
   x: number;
   y: number;
   dir: 1 | -1;
-  mouth: number; // 0–1 open amount
+  mouth: number;
   mouthDir: 1 | -1;
   targetIdx: number | null;
 };
 
-export function GatorChase({ width = 600, height = 180 }: { width?: number; height?: number }) {
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export function GatorChase({
+  width = 600,
+  height = 180,
+}: {
+  width?: number;
+  height?: number;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef<{
     particles: Particle[];
-    gator1: Gator;
-    gator2: Gator;
+    g1: Gator;
+    g2: Gator;
     frame: number;
     nextId: number;
     animId: number;
@@ -38,22 +184,25 @@ export function GatorChase({ width = 600, height = 180 }: { width?: number; heig
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const safeCtx = ctx;
+    const ctxRaw = canvas.getContext("2d");
+    if (!ctxRaw) return;
+    const ctx = ctxRaw;
 
     const W = canvas.width;
     const H = canvas.height;
-    const GATOR_SIZE = 40;
-    const ITEM_SIZE = 28;
-    const SPEED = 1.6;
+    const GROUND = H - 24;
+    const GATOR_BODY_W = 24 * P;
+    const SPEED = 1.4;
+    const EAT_DIST = GATOR_BODY_W * 0.55;
 
-    function spawnParticle(id: number): Particle {
+    function spawn(id: number): Particle {
+      const baseY = GROUND - 8;
       return {
         id,
-        emoji: ITEMS[Math.floor(Math.random() * ITEMS.length)],
+        kind: ITEM_KINDS[Math.floor(Math.random() * ITEM_KINDS.length)],
         x: 80 + Math.random() * (W - 160),
-        y: H / 2 + (Math.random() - 0.5) * 60,
+        y: baseY,
+        baseY,
         eaten: false,
         opacity: 1,
         scale: 1,
@@ -61,187 +210,125 @@ export function GatorChase({ width = 600, height = 180 }: { width?: number; heig
       };
     }
 
-    const initialParticles: Particle[] = Array.from({ length: 7 }, (_, i) =>
-      spawnParticle(i)
-    );
+    const particles: Particle[] = Array.from({ length: 6 }, (_, i) => spawn(i));
 
-    const g1: Gator = { x: -GATOR_SIZE, y: H * 0.42, dir: 1, mouth: 0.3, mouthDir: 1, targetIdx: null };
-    const g2: Gator = { x: W + GATOR_SIZE, y: H * 0.62, dir: -1, mouth: 0.3, mouthDir: 1, targetIdx: null };
+    const g1: Gator = {
+      x: -GATOR_BODY_W,
+      y: GROUND,
+      dir: 1,
+      mouth: 0,
+      mouthDir: 1,
+      targetIdx: null,
+    };
+    const g2: Gator = {
+      x: W + GATOR_BODY_W,
+      y: GROUND,
+      dir: -1,
+      mouth: 0,
+      mouthDir: 1,
+      targetIdx: null,
+    };
 
-    stateRef.current = { particles: initialParticles, gator1: g1, gator2: g2, frame: 0, nextId: initialParticles.length, animId: 0 };
+    stateRef.current = {
+      particles,
+      g1,
+      g2,
+      frame: 0,
+      nextId: particles.length,
+      animId: 0,
+    };
 
-    function findTarget(gator: Gator, particles: Particle[]): number | null {
+    function nearestTarget(g: Gator, parts: Particle[]): number | null {
       let best: number | null = null;
       let bestDist = Infinity;
-      particles.forEach((p, i) => {
+      parts.forEach((p, i) => {
         if (p.eaten || p.opacity < 0.5) return;
-        const ahead = gator.dir === 1 ? p.x > gator.x : p.x < gator.x;
+        const ahead = g.dir === 1 ? p.x > g.x - 20 : p.x < g.x + 20;
         if (!ahead) return;
-        const dist = Math.abs(p.x - gator.x);
-        if (dist < bestDist) { bestDist = dist; best = i; }
+        const d = Math.abs(p.x - g.x);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
       });
       return best;
     }
 
-    function drawGator(ctx: CanvasRenderingContext2D, g: Gator, frame: number) {
-      ctx.save();
-      ctx.translate(g.x, g.y);
-      if (g.dir === -1) ctx.scale(-1, 1);
-
-      const mouthAngle = g.mouth * 0.55; // radians
-
-      // Body — green ellipse
-      ctx.fillStyle = "#22c55e";
-      ctx.beginPath();
-      ctx.ellipse(0, 0, GATOR_SIZE * 0.75, GATOR_SIZE * 0.38, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Tail
-      ctx.fillStyle = "#16a34a";
-      ctx.beginPath();
-      ctx.moveTo(-GATOR_SIZE * 0.7, 0);
-      ctx.quadraticCurveTo(-GATOR_SIZE * 1.05, GATOR_SIZE * 0.3, -GATOR_SIZE * 1.2, GATOR_SIZE * 0.1);
-      ctx.quadraticCurveTo(-GATOR_SIZE * 0.9, -GATOR_SIZE * 0.1, -GATOR_SIZE * 0.7, 0);
-      ctx.fill();
-
-      // Upper jaw
-      ctx.fillStyle = "#15803d";
-      ctx.save();
-      ctx.rotate(-mouthAngle);
-      ctx.beginPath();
-      ctx.ellipse(GATOR_SIZE * 0.35, 0, GATOR_SIZE * 0.55, GATOR_SIZE * 0.22, 0, Math.PI, 0);
-      ctx.fill();
-      // Snout ridge
-      ctx.fillStyle = "#166534";
-      ctx.beginPath();
-      ctx.ellipse(GATOR_SIZE * 0.65, -GATOR_SIZE * 0.06, GATOR_SIZE * 0.12, GATOR_SIZE * 0.07, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // Lower jaw
-      ctx.fillStyle = "#15803d";
-      ctx.save();
-      ctx.rotate(mouthAngle);
-      ctx.beginPath();
-      ctx.ellipse(GATOR_SIZE * 0.35, 0, GATOR_SIZE * 0.55, GATOR_SIZE * 0.18, 0, 0, Math.PI);
-      ctx.fill();
-      // Teeth
-      ctx.fillStyle = "#f0fdf4";
-      for (let t = 0; t < 3; t++) {
-        ctx.beginPath();
-        ctx.arc(GATOR_SIZE * (0.12 + t * 0.28), GATOR_SIZE * 0.08, GATOR_SIZE * 0.055, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-
-      // Eye
-      const eyeBob = Math.sin(frame * 0.04 + (g.dir === 1 ? 0 : 1)) * 1.5;
-      ctx.fillStyle = "#fef08a";
-      ctx.beginPath();
-      ctx.arc(GATOR_SIZE * 0.15, -GATOR_SIZE * 0.28 + eyeBob, GATOR_SIZE * 0.13, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#111";
-      ctx.beginPath();
-      ctx.arc(GATOR_SIZE * 0.17, -GATOR_SIZE * 0.27 + eyeBob, GATOR_SIZE * 0.065, 0, Math.PI * 2);
-      ctx.fill();
-      // Shine
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(GATOR_SIZE * 0.2, -GATOR_SIZE * 0.31 + eyeBob, GATOR_SIZE * 0.03, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-
     function tick() {
-      const state = stateRef.current!;
-      const { particles, frame } = state;
-      state.frame++;
+      const s = stateRef.current!;
+      s.frame++;
+      const { frame } = s;
 
-      // Animate mouth chomp
+      // Mouth chomp
       [g1, g2].forEach((g) => {
-        g.mouth += g.mouthDir * 0.04;
+        g.mouth += g.mouthDir * 0.05;
         if (g.mouth >= 1) g.mouthDir = -1;
         if (g.mouth <= 0) g.mouthDir = 1;
       });
 
-      // Move gators
+      // Move gators, track nearest item
       [g1, g2].forEach((g) => {
-        const tidx = findTarget(g, particles);
-        g.targetIdx = tidx;
-        if (tidx !== null) {
-          const target = particles[tidx];
-          const dy = target.y - g.y;
-          g.y += Math.sign(dy) * Math.min(Math.abs(dy) * 0.04, 1.2);
-        }
+        g.targetIdx = nearestTarget(g, s.particles);
         g.x += g.dir * SPEED;
-        // Wrap around
-        if (g.dir === 1 && g.x > W + GATOR_SIZE * 1.5) g.x = -GATOR_SIZE * 1.5;
-        if (g.dir === -1 && g.x < -GATOR_SIZE * 1.5) g.x = W + GATOR_SIZE * 1.5;
+        if (g.dir === 1 && g.x > W + GATOR_BODY_W * 1.5) g.x = -GATOR_BODY_W * 1.5;
+        if (g.dir === -1 && g.x < -GATOR_BODY_W * 1.5) g.x = W + GATOR_BODY_W * 1.5;
       });
 
-      // Check eating
-      particles.forEach((p) => {
+      // Eat particles
+      s.particles.forEach((p) => {
         if (p.eaten) return;
         [g1, g2].forEach((g) => {
-          const dist = Math.hypot(g.x - p.x, g.y - p.y);
-          if (dist < GATOR_SIZE * 0.7 && g.mouth > 0.4) {
+          // Eating zone is near the jaw (front of gator)
+          const jawX = g.dir === 1 ? g.x + GATOR_BODY_W * 0.85 : g.x - GATOR_BODY_W * 0.85;
+          const dist = Math.hypot(jawX - p.x, g.y - p.baseY);
+          if (dist < EAT_DIST && g.mouth > 0.4) {
             p.eaten = true;
           }
         });
       });
 
-      // Fade eaten particles, bob live ones
-      particles.forEach((p) => {
+      // Bob live / fade eaten
+      s.particles.forEach((p) => {
         if (p.eaten) {
-          p.opacity -= 0.06;
-          p.scale += 0.04;
+          p.opacity -= 0.07;
+          p.scale += 0.06;
         } else {
-          p.y += Math.sin(frame * 0.025 + p.bobOffset) * 0.3;
+          p.y = p.baseY + Math.sin(frame * 0.03 + p.bobOffset) * 3;
         }
       });
 
-      // Replace fully gone particles
-      const alive = particles.filter((p) => p.opacity > 0);
-      while (alive.length < 7) {
-        alive.push(spawnParticle(state.nextId++));
-      }
-      state.particles = alive;
+      // Replenish
+      const alive = s.particles.filter((p) => p.opacity > 0);
+      while (alive.length < 6) alive.push(spawn(s.nextId++));
+      s.particles = alive;
 
-      // Draw
-      safeCtx.clearRect(0, 0, W, H);
+      // ── Draw ──────────────────────────────────────────
+      ctx.clearRect(0, 0, W, H);
 
-      // Items — pill labels
-      state.particles.forEach((p) => {
+      // Ground line
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(0, GROUND + 2, W, 1);
+
+      // Items
+      s.particles.forEach((p) => {
         if (p.opacity <= 0) return;
-        safeCtx.save();
-        safeCtx.globalAlpha = Math.max(0, p.opacity);
-        const w = ITEM_SIZE * p.scale * 2.2;
-        const h = ITEM_SIZE * p.scale * 0.9;
-        const rx = h / 2;
-        // Pill background
-        safeCtx.fillStyle = "#1a1a1a";
-        safeCtx.strokeStyle = "#2a2a2a";
-        safeCtx.lineWidth = 1;
-        safeCtx.beginPath();
-        safeCtx.roundRect(p.x - w / 2, p.y - h / 2, w, h, rx);
-        safeCtx.fill();
-        safeCtx.stroke();
-        // Label text
-        safeCtx.fillStyle = "#4ade80";
-        safeCtx.font = `600 ${10 * p.scale}px ui-monospace, monospace`;
-        safeCtx.textAlign = "center";
-        safeCtx.textBaseline = "middle";
-        safeCtx.letterSpacing = "0.08em";
-        safeCtx.fillText(p.emoji, p.x, p.y);
-        safeCtx.restore();
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, p.opacity);
+        drawItem(ctx, p.kind, p.x, p.y, p.scale);
+        ctx.restore();
       });
 
       // Gators
-      drawGator(safeCtx, g1, frame);
-      drawGator(safeCtx, g2, frame);
+      drawGator(ctx, g1.x, g1.y, g1.dir, frame, g1.mouth > 0.55);
+      drawGator(ctx, g2.x, g2.y, g2.dir, frame + 12, g2.mouth > 0.55);
 
-      state.animId = requestAnimationFrame(tick);
+      // Subtle scanline overlay
+      ctx.fillStyle = "rgba(0,0,0,0.06)";
+      for (let y = 0; y < H; y += 4) {
+        ctx.fillRect(0, y, W, 2);
+      }
+
+      s.animId = requestAnimationFrame(tick);
     }
 
     stateRef.current.animId = requestAnimationFrame(tick);
@@ -255,7 +342,12 @@ export function GatorChase({ width = 600, height = 180 }: { width?: number; heig
       ref={canvasRef}
       width={width}
       height={height}
-      style={{ width: "100%", height: "auto", display: "block" }}
+      style={{
+        width: "100%",
+        height: "auto",
+        display: "block",
+        imageRendering: "pixelated",
+      }}
       aria-hidden="true"
     />
   );
