@@ -82,9 +82,9 @@ export async function AppHeader() {
         position: "sticky",
         top: 0,
         zIndex: 10,
-        background: "rgba(255, 255, 255, 0.96)",
-        borderBottom: "1px solid #ebebeb",
-        backdropFilter: "saturate(180%) blur(8px)"
+        background: "rgba(8, 8, 8, 0.92)",
+        borderBottom: "1px solid #141414",
+        backdropFilter: "saturate(180%) blur(12px)"
       }}
     >
       <style>{`

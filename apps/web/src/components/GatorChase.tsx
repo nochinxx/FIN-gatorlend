@@ -166,7 +166,7 @@ type Gator = {
 
 export function GatorChase({
   width = 600,
-  height = 180,
+  height = 300,
 }: {
   width?: number;
   height?: number;
@@ -174,8 +174,7 @@ export function GatorChase({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef<{
     particles: Particle[];
-    g1: Gator;
-    g2: Gator;
+    gator: Gator;
     frame: number;
     nextId: number;
     animId: number;
@@ -190,17 +189,18 @@ export function GatorChase({
 
     const W = canvas.width;
     const H = canvas.height;
-    const GROUND = H - 24;
     const GATOR_BODY_W = 24 * P;
-    const SPEED = 1.4;
-    const EAT_DIST = GATOR_BODY_W * 0.55;
+    const SPEED = 1.6;
+    const EAT_DIST = GATOR_BODY_W * 0.6;
+    const MARGIN = 40;
 
+    // Spawn items scattered across the full 2D canvas
     function spawn(id: number): Particle {
-      const baseY = GROUND - 8;
+      const baseY = MARGIN + Math.random() * (H - MARGIN * 2);
       return {
         id,
         kind: ITEM_KINDS[Math.floor(Math.random() * ITEM_KINDS.length)],
-        x: 80 + Math.random() * (W - 160),
+        x: MARGIN + Math.random() * (W - MARGIN * 2),
         y: baseY,
         baseY,
         eaten: false,
@@ -210,20 +210,12 @@ export function GatorChase({
       };
     }
 
-    const particles: Particle[] = Array.from({ length: 6 }, (_, i) => spawn(i));
+    const particles: Particle[] = Array.from({ length: 10 }, (_, i) => spawn(i));
 
-    const g1: Gator = {
+    const gator: Gator = {
       x: -GATOR_BODY_W,
-      y: GROUND,
+      y: H / 2,
       dir: 1,
-      mouth: 0,
-      mouthDir: 1,
-      targetIdx: null,
-    };
-    const g2: Gator = {
-      x: W + GATOR_BODY_W,
-      y: GROUND,
-      dir: -1,
       mouth: 0,
       mouthDir: 1,
       targetIdx: null,
@@ -231,25 +223,22 @@ export function GatorChase({
 
     stateRef.current = {
       particles,
-      g1,
-      g2,
+      gator,
       frame: 0,
       nextId: particles.length,
       animId: 0,
     };
 
-    function nearestTarget(g: Gator, parts: Particle[]): number | null {
+    function nearestAhead(g: Gator, parts: Particle[]): number | null {
       let best: number | null = null;
       let bestDist = Infinity;
       parts.forEach((p, i) => {
         if (p.eaten || p.opacity < 0.5) return;
-        const ahead = g.dir === 1 ? p.x > g.x - 20 : p.x < g.x + 20;
+        const ahead = g.dir === 1 ? p.x > g.x : p.x < g.x;
         if (!ahead) return;
-        const d = Math.abs(p.x - g.x);
-        if (d < bestDist) {
-          bestDist = d;
-          best = i;
-        }
+        // Weight by horizontal distance primarily, slight vertical penalty
+        const d = Math.abs(p.x - g.x) + Math.abs(p.baseY - g.y) * 0.3;
+        if (d < bestDist) { bestDist = d; best = i; }
       });
       return best;
     }
@@ -257,57 +246,75 @@ export function GatorChase({
     function tick() {
       const s = stateRef.current!;
       s.frame++;
-      const { frame } = s;
+      const { frame, gator: g } = s;
 
       // Mouth chomp
-      [g1, g2].forEach((g) => {
-        g.mouth += g.mouthDir * 0.05;
-        if (g.mouth >= 1) g.mouthDir = -1;
-        if (g.mouth <= 0) g.mouthDir = 1;
-      });
+      g.mouth += g.mouthDir * 0.06;
+      if (g.mouth >= 1) g.mouthDir = -1;
+      if (g.mouth <= 0) g.mouthDir = 1;
 
-      // Move gators, track nearest item
-      [g1, g2].forEach((g) => {
-        g.targetIdx = nearestTarget(g, s.particles);
-        g.x += g.dir * SPEED;
-        if (g.dir === 1 && g.x > W + GATOR_BODY_W * 1.5) g.x = -GATOR_BODY_W * 1.5;
-        if (g.dir === -1 && g.x < -GATOR_BODY_W * 1.5) g.x = W + GATOR_BODY_W * 1.5;
-      });
+      // Find nearest target ahead, track vertically
+      const tidx = nearestAhead(g, s.particles);
+      g.targetIdx = tidx;
+      if (tidx !== null) {
+        const target = s.particles[tidx];
+        const dy = target.baseY - g.y;
+        g.y += Math.sign(dy) * Math.min(Math.abs(dy) * 0.05, 2);
+      }
 
-      // Eat particles
+      // Move horizontally
+      g.x += g.dir * SPEED;
+
+      // Wrap: flip direction when leaving screen, reposition on opposite side
+      if (g.dir === 1 && g.x > W + GATOR_BODY_W) {
+        g.x = -GATOR_BODY_W;
+        g.dir = 1;
+      }
+      if (g.dir === -1 && g.x < -GATOR_BODY_W) {
+        g.x = W + GATOR_BODY_W;
+        g.dir = -1;
+      }
+
+      // Eat
       s.particles.forEach((p) => {
         if (p.eaten) return;
-        [g1, g2].forEach((g) => {
-          // Eating zone is near the jaw (front of gator)
-          const jawX = g.dir === 1 ? g.x + GATOR_BODY_W * 0.85 : g.x - GATOR_BODY_W * 0.85;
-          const dist = Math.hypot(jawX - p.x, g.y - p.baseY);
-          if (dist < EAT_DIST && g.mouth > 0.4) {
-            p.eaten = true;
-          }
-        });
+        const jawX = g.dir === 1 ? g.x + GATOR_BODY_W * 0.85 : g.x - GATOR_BODY_W * 0.85;
+        const dist = Math.hypot(jawX - p.x, g.y - p.baseY);
+        if (dist < EAT_DIST && g.mouth > 0.4) p.eaten = true;
       });
 
-      // Bob live / fade eaten
+      // Animate particles
       s.particles.forEach((p) => {
         if (p.eaten) {
-          p.opacity -= 0.07;
-          p.scale += 0.06;
+          p.opacity -= 0.06;
+          p.scale += 0.05;
         } else {
-          p.y = p.baseY + Math.sin(frame * 0.03 + p.bobOffset) * 3;
+          p.y = p.baseY + Math.sin(frame * 0.025 + p.bobOffset) * 4;
         }
       });
 
-      // Replenish
+      // Replenish — keep 10 alive, spawn away from gator
       const alive = s.particles.filter((p) => p.opacity > 0);
-      while (alive.length < 6) alive.push(spawn(s.nextId++));
+      while (alive.length < 10) {
+        const candidate = spawn(s.nextId++);
+        // Ensure new items appear on the far side from where gator is headed
+        candidate.x = g.dir === 1
+          ? MARGIN + Math.random() * (W * 0.5)
+          : W * 0.5 + Math.random() * (W * 0.5 - MARGIN);
+        alive.push(candidate);
+      }
       s.particles = alive;
 
-      // ── Draw ──────────────────────────────────────────
+      // ── Draw ────────────────────────────────────────────────────────────
       ctx.clearRect(0, 0, W, H);
 
-      // Ground line
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(0, GROUND + 2, W, 1);
+      // Subtle dot grid background
+      ctx.fillStyle = "#161616";
+      for (let gx = 16; gx < W; gx += 32) {
+        for (let gy = 16; gy < H; gy += 32) {
+          ctx.fillRect(gx, gy, 1, 1);
+        }
+      }
 
       // Items
       s.particles.forEach((p) => {
@@ -318,14 +325,29 @@ export function GatorChase({
         ctx.restore();
       });
 
-      // Gators
-      drawGator(ctx, g1.x, g1.y, g1.dir, frame, g1.mouth > 0.55);
-      drawGator(ctx, g2.x, g2.y, g2.dir, frame + 12, g2.mouth > 0.55);
+      // Target indicator — faint line from jaw to nearest item
+      if (g.targetIdx !== null && s.particles[g.targetIdx]) {
+        const t = s.particles[g.targetIdx];
+        const jawX = g.dir === 1 ? g.x + GATOR_BODY_W * 0.85 : g.x - GATOR_BODY_W * 0.85;
+        ctx.save();
+        ctx.globalAlpha = 0.07;
+        ctx.strokeStyle = "#4ade80";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.moveTo(jawX, g.y);
+        ctx.lineTo(t.x, t.y);
+        ctx.stroke();
+        ctx.restore();
+      }
 
-      // Subtle scanline overlay
-      ctx.fillStyle = "rgba(0,0,0,0.06)";
-      for (let y = 0; y < H; y += 4) {
-        ctx.fillRect(0, y, W, 2);
+      // Gator
+      drawGator(ctx, g.x, g.y, g.dir, frame, g.mouth > 0.5);
+
+      // Scanlines
+      ctx.fillStyle = "rgba(0,0,0,0.05)";
+      for (let sy = 0; sy < H; sy += 4) {
+        ctx.fillRect(0, sy, W, 2);
       }
 
       s.animId = requestAnimationFrame(tick);

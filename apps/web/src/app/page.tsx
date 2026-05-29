@@ -202,7 +202,7 @@ export default async function HomePage() {
                 padding: "2rem 1.25rem 1.25rem",
               }}
             >
-              <GatorChase width={540} height={200} />
+              <GatorChase width={540} height={300} />
               <div style={{
                 marginTop: "1.25rem",
                 padding: "1rem 0.25rem 0",
