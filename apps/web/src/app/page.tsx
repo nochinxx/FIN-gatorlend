@@ -133,8 +133,8 @@ export default async function HomePage() {
                 maxWidth: 500,
               }}
             >
-              GatorLend is the SFSU student marketplace for textbooks,
-              calculators, lab coats, and course materials. No Craigslist risk.
+              Buy and sell textbooks, calculators, lab coats, and course
+              materials with verified Gators. No Craigslist risk.
               No bookstore markup.
             </p>
 
@@ -196,37 +196,6 @@ export default async function HomePage() {
               background: "#0b0b0b",
             }}
           >
-            {/* Panel header bar */}
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0.75rem 1.5rem",
-              borderBottom: "1px solid #141414",
-            }}>
-              <span style={{
-                fontFamily: "ui-monospace, monospace",
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#e5e5e5",
-                letterSpacing: "0.04em",
-              }}>
-                GatorLend
-              </span>
-              <div style={{
-                display: "flex",
-                gap: "1.25rem",
-                fontSize: 11,
-                color: "#2a2a2a",
-                fontFamily: "ui-monospace, monospace",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}>
-                {["Textbooks", "Calculators", "Lab Coats"].map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </div>
             <GatorChase width={1400} height={380} />
           </div>
         </section>

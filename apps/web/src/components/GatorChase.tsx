@@ -178,6 +178,7 @@ export function GatorChase({
     frame: number;
     nextId: number;
     animId: number;
+    score: number;
   } | null>(null);
 
   useEffect(() => {
@@ -227,6 +228,7 @@ export function GatorChase({
       frame: 0,
       nextId: particles.length,
       animId: 0,
+      score: 0,
     };
 
     function nearestAhead(g: Gator, parts: Particle[]): number | null {
@@ -264,13 +266,13 @@ export function GatorChase({
       // Move horizontally
       g.x += g.dir * SPEED;
 
-      // Bounce off edges
-      if (g.dir === 1 && g.x >= W - GATOR_BODY_W * 0.4) {
-        g.x = W - GATOR_BODY_W * 0.4;
+      // Bounce off edges — snout extends GATOR_BODY_W from origin, tail ~28px back
+      if (g.dir === 1 && g.x >= W - GATOR_BODY_W - 12) {
+        g.x = W - GATOR_BODY_W - 12;
         g.dir = -1;
       }
-      if (g.dir === -1 && g.x <= GATOR_BODY_W * 0.4) {
-        g.x = GATOR_BODY_W * 0.4;
+      if (g.dir === -1 && g.x <= GATOR_BODY_W + 12) {
+        g.x = GATOR_BODY_W + 12;
         g.dir = 1;
       }
 
@@ -279,7 +281,10 @@ export function GatorChase({
         if (p.eaten) return;
         const jawX = g.dir === 1 ? g.x + GATOR_BODY_W * 0.85 : g.x - GATOR_BODY_W * 0.85;
         const dist = Math.hypot(jawX - p.x, g.y - p.baseY);
-        if (dist < EAT_DIST && g.mouth > 0.4) p.eaten = true;
+        if (dist < EAT_DIST && g.mouth > 0.4) {
+          p.eaten = true;
+          s.score++;
+        }
       });
 
       // Animate particles
@@ -309,6 +314,15 @@ export function GatorChase({
           ctx.fillRect(gx, gy, 1, 1);
         }
       }
+
+      // Game HUD — title top-left, score top-right
+      ctx.save();
+      ctx.font = "bold 13px ui-monospace, monospace";
+      ctx.fillStyle = "#333";
+      ctx.fillText("GATORLEND", 16, 22);
+      ctx.textAlign = "right";
+      ctx.fillText(`EATEN  ${s.score ?? 0}`, W - 16, 22);
+      ctx.restore();
 
       // Items
       s.particles.forEach((p) => {
