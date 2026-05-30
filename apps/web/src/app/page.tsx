@@ -196,7 +196,7 @@ export default async function HomePage() {
               background: "#0b0b0b",
             }}
           >
-            <GatorChase width={1400} height={380} />
+            <GatorChase width={1400} height={420} />
           </div>
         </section>
 

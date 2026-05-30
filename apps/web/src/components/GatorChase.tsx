@@ -140,7 +140,7 @@ function drawItem(
 }
 
 // ── Pixel-art title font (5×7 glyph grid) ────────────────────────────────────
-const FONT_S = 10;   // canvas pixels per font dot
+const FONT_S = 14;   // canvas pixels per font dot
 const FONT_GAP = 2;  // dot-units of space between characters
 
 const GLYPHS: Record<string, number[][]> = {
@@ -348,8 +348,8 @@ export function GatorChase({
 
       // Pixel-art title — centered, background layer (drawn before items/gator)
       const titleW = "GATORLEND".length * (5 + FONT_GAP) * FONT_S - FONT_GAP * FONT_S;
-      ctx.fillStyle = "#1e1e1e";
-      drawPixelString(ctx, "GATORLEND", Math.round((W - titleW) / 2), 20);
+      ctx.fillStyle = "#303030";
+      drawPixelString(ctx, "GATORLEND", Math.round((W - titleW) / 2), 16);
 
       // Items
       s.particles.forEach((p) => {
