@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BrandLogo } from "@/components/BrandLogo";
 import { GatorChase } from "@/components/GatorChase";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
@@ -99,8 +100,11 @@ export default async function HomePage() {
             padding: "6rem 1.5rem 4rem",
             textAlign: "center",
           }}>
+            <div className="hero-title" style={{ display: "flex", justifyContent: "center", marginBottom: "2.5rem" }}>
+              <BrandLogo size="login" variant="white" priority />
+            </div>
+
             <h1
-              className="hero-title"
               style={{
                 margin: "0 0 1.5rem",
                 fontSize: "clamp(3rem, 7vw, 5.5rem)",
