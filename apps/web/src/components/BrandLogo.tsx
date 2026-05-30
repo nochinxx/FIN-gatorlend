@@ -5,6 +5,7 @@ type BrandLogoProps = {
   href?: string;
   priority?: boolean;
   size?: "nav" | "hero" | "login";
+  variant?: "black" | "white";
 };
 
 const dimensions = {
@@ -13,13 +14,13 @@ const dimensions = {
   login: { width: 220, height: 48 }
 } as const;
 
-export function BrandLogo({ href = "/", priority = false, size = "nav" }: BrandLogoProps) {
+export function BrandLogo({ href = "/", priority = false, size = "nav", variant = "black" }: BrandLogoProps) {
   const logoSize = dimensions[size];
 
   return (
     <Link href={href} style={{ display: "inline-flex", alignItems: "center" }}>
       <Image
-        src="/branding/fin-logo-horizontal-black.png"
+        src={`/branding/fin-logo-horizontal-${variant}.png`}
         alt="FIN Club"
         width={logoSize.width}
         height={logoSize.height}

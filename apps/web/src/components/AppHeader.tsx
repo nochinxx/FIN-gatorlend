@@ -102,7 +102,7 @@ export async function AppHeader() {
         profileHref={user ? (needsSetup ? "/profile/setup" : "/profile") : null}
         showLogin={!user}
       >
-        <BrandLogo size="nav" priority />
+        <BrandLogo size="nav" priority variant="white" />
       </AppNavShell>
     </header>
   );

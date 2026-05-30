@@ -234,9 +234,8 @@ export function GatorChase({
       let bestDist = Infinity;
       parts.forEach((p, i) => {
         if (p.eaten || p.opacity < 0.5) return;
-        const ahead = g.dir === 1 ? p.x > g.x : p.x < g.x;
+        const ahead = g.dir === 1 ? p.x > g.x - 20 : p.x < g.x + 20;
         if (!ahead) return;
-        // Weight by horizontal distance primarily, slight vertical penalty
         const d = Math.abs(p.x - g.x) + Math.abs(p.baseY - g.y) * 0.3;
         if (d < bestDist) { bestDist = d; best = i; }
       });
@@ -265,14 +264,14 @@ export function GatorChase({
       // Move horizontally
       g.x += g.dir * SPEED;
 
-      // Wrap: flip direction when leaving screen, reposition on opposite side
-      if (g.dir === 1 && g.x > W + GATOR_BODY_W) {
-        g.x = -GATOR_BODY_W;
-        g.dir = 1;
-      }
-      if (g.dir === -1 && g.x < -GATOR_BODY_W) {
-        g.x = W + GATOR_BODY_W;
+      // Bounce off edges
+      if (g.dir === 1 && g.x >= W - GATOR_BODY_W * 0.4) {
+        g.x = W - GATOR_BODY_W * 0.4;
         g.dir = -1;
+      }
+      if (g.dir === -1 && g.x <= GATOR_BODY_W * 0.4) {
+        g.x = GATOR_BODY_W * 0.4;
+        g.dir = 1;
       }
 
       // Eat
@@ -293,15 +292,10 @@ export function GatorChase({
         }
       });
 
-      // Replenish — keep 10 alive, spawn away from gator
+      // Replenish — keep 10 alive
       const alive = s.particles.filter((p) => p.opacity > 0);
       while (alive.length < 10) {
-        const candidate = spawn(s.nextId++);
-        // Ensure new items appear on the far side from where gator is headed
-        candidate.x = g.dir === 1
-          ? MARGIN + Math.random() * (W * 0.5)
-          : W * 0.5 + Math.random() * (W * 0.5 - MARGIN);
-        alive.push(candidate);
+        alive.push(spawn(s.nextId++));
       }
       s.particles = alive;
 

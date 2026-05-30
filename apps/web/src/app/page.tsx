@@ -85,134 +85,141 @@ export default async function HomePage() {
         <section style={{ position: "relative", overflow: "hidden" }}>
           <div className="grain-overlay" />
 
-          {/* Subtle radial glow */}
+          {/* Radial glow */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "radial-gradient(ellipse 70% 50% at 65% 40%, rgba(34,197,94,0.07) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse 60% 60% at 50% 80%, rgba(34,197,94,0.07) 0%, transparent 65%)",
           }} />
 
+          {/* Centered copy */}
           <div style={{
             position: "relative",
-            maxWidth: 1200,
+            maxWidth: 760,
             margin: "0 auto",
-            padding: "6rem 1.5rem 5rem",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))",
-            gap: "4rem",
-            alignItems: "center",
+            padding: "6rem 1.5rem 4rem",
+            textAlign: "center",
           }}>
-            {/* Left — copy */}
-            <div>
-              <h1
-                className="hero-title"
-                style={{
-                  margin: "0 0 1.5rem",
-                  fontSize: "clamp(3.2rem, 7vw, 5.5rem)",
-                  lineHeight: 0.92,
-                  letterSpacing: "-0.045em",
-                  fontWeight: 800,
-                  color: "#f2f2f2",
-                }}
-              >
-                Buy and sell<br />
-                <span style={{
-                  background: "linear-gradient(95deg, #22c55e 0%, #86efac 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}>
-                  textbooks
-                </span>
-                <br />
-                with Gators.
-              </h1>
-
-              <p
-                className="hero-body"
-                style={{
-                  margin: "0 0 2.5rem",
-                  fontSize: "1.1rem",
-                  lineHeight: 1.7,
-                  color: "#737373",
-                  maxWidth: 440,
-                }}
-              >
-                GatorLend is the SFSU student marketplace for textbooks,
-                calculators, lab coats, and course materials. No Craigslist risk.
-                No bookstore markup.
-              </p>
-
-              <div
-                className="hero-ctas"
-                style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
-              >
-                <Link
-                  href="/marketplace"
-                  className="cta-primary"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    padding: "0.8rem 1.5rem",
-                    borderRadius: 8,
-                    background: "#16a34a",
-                    color: "#fff",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    border: "1px solid #15803d",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  Browse marketplace
-                </Link>
-                <Link
-                  href="/listings/new"
-                  className="cta-secondary"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    padding: "0.8rem 1.5rem",
-                    borderRadius: 8,
-                    border: "1px solid #1f1f1f",
-                    background: "#0e0e0e",
-                    color: "#a3a3a3",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  Sell something
-                </Link>
-              </div>
-
-              <p style={{ margin: "1.75rem 0 0", fontSize: 12, color: "#3a3a3a", lineHeight: 1.6, letterSpacing: "0.01em" }}>
-                Requires an @sfsu.edu email &mdash; independent student project, not affiliated with SFSU or CSU.
-              </p>
-            </div>
-
-            {/* Right — animation */}
-            <div
-              className="hero-canvas"
+            <h1
+              className="hero-title"
               style={{
-                borderRadius: 20,
-                border: "1px solid #141414",
-                background: "#0b0b0b",
-                overflow: "hidden",
-                padding: "2rem 1.25rem 1.25rem",
+                margin: "0 0 1.5rem",
+                fontSize: "clamp(3rem, 7vw, 5.5rem)",
+                lineHeight: 0.92,
+                letterSpacing: "-0.045em",
+                fontWeight: 800,
+                color: "#f2f2f2",
               }}
             >
-              <GatorChase width={540} height={300} />
-              <div style={{
-                marginTop: "1.25rem",
-                padding: "1rem 0.25rem 0",
-                borderTop: "1px solid #141414",
-                display: "flex",
-                gap: "1.5rem",
-                fontSize: 12,
-                color: "#333",
+              Buy and sell{" "}
+              <span style={{
+                background: "linear-gradient(95deg, #22c55e 0%, #86efac 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}>
+                textbooks
+              </span>
+              <br />
+              with Gators.
+            </h1>
+
+            <p
+              className="hero-body"
+              style={{
+                margin: "0 auto 2.5rem",
+                fontSize: "1.1rem",
+                lineHeight: 1.7,
+                color: "#737373",
+                maxWidth: 500,
+              }}
+            >
+              GatorLend is the SFSU student marketplace for textbooks,
+              calculators, lab coats, and course materials. No Craigslist risk.
+              No bookstore markup.
+            </p>
+
+            <div
+              className="hero-ctas"
+              style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}
+            >
+              <Link
+                href="/marketplace"
+                className="cta-primary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0.8rem 1.5rem",
+                  borderRadius: 8,
+                  background: "#16a34a",
+                  color: "#fff",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  border: "1px solid #15803d",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Browse marketplace
+              </Link>
+              <Link
+                href="/listings/new"
+                className="cta-secondary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0.8rem 1.5rem",
+                  borderRadius: 8,
+                  border: "1px solid #1f1f1f",
+                  background: "#0e0e0e",
+                  color: "#a3a3a3",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Sell something
+              </Link>
+            </div>
+
+            <p style={{ margin: "1.75rem 0 0", fontSize: 12, color: "#3a3a3a", lineHeight: 1.6, letterSpacing: "0.01em" }}>
+              Requires an @sfsu.edu email &mdash; independent student project, not affiliated with SFSU or CSU.
+            </p>
+          </div>
+
+          {/* Full-width animation panel */}
+          <div
+            className="hero-canvas"
+            style={{
+              position: "relative",
+              borderTop: "1px solid #141414",
+              background: "#0b0b0b",
+            }}
+          >
+            {/* Panel header bar */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0.75rem 1.5rem",
+              borderBottom: "1px solid #141414",
+            }}>
+              <span style={{
                 fontFamily: "ui-monospace, monospace",
-                letterSpacing: "0.08em",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#e5e5e5",
+                letterSpacing: "0.04em",
+              }}>
+                GatorLend
+              </span>
+              <div style={{
+                display: "flex",
+                gap: "1.25rem",
+                fontSize: 11,
+                color: "#2a2a2a",
+                fontFamily: "ui-monospace, monospace",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
               }}>
                 {["Textbooks", "Calculators", "Lab Coats"].map((item) => (
@@ -220,6 +227,7 @@ export default async function HomePage() {
                 ))}
               </div>
             </div>
+            <GatorChase width={1400} height={380} />
           </div>
         </section>
 
