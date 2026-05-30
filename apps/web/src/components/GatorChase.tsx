@@ -139,6 +139,42 @@ function drawItem(
   ctx.restore();
 }
 
+// ── Pixel-art title font (5×7 glyph grid) ────────────────────────────────────
+const FONT_S = 10;   // canvas pixels per font dot
+const FONT_GAP = 2;  // dot-units of space between characters
+
+const GLYPHS: Record<string, number[][]> = {
+  G: [[0,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+  A: [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1]],
+  T: [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
+  O: [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+  R: [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]],
+  L: [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,1,1]],
+  E: [[1,1,1,1,1],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,1,1]],
+  N: [[1,0,0,0,1],[1,1,0,0,1],[1,0,1,0,1],[1,0,0,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1]],
+  D: [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0]],
+};
+
+function drawPixelString(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number
+) {
+  let cx = x;
+  for (const ch of text) {
+    const glyph = GLYPHS[ch];
+    if (glyph) {
+      for (let r = 0; r < glyph.length; r++) {
+        for (let c = 0; c < glyph[r].length; c++) {
+          if (glyph[r][c]) ctx.fillRect(cx + c * FONT_S, y + r * FONT_S, FONT_S, FONT_S);
+        }
+      }
+    }
+    cx += (5 + FONT_GAP) * FONT_S;
+  }
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Particle = {
@@ -178,7 +214,6 @@ export function GatorChase({
     frame: number;
     nextId: number;
     animId: number;
-    score: number;
   } | null>(null);
 
   useEffect(() => {
@@ -228,7 +263,6 @@ export function GatorChase({
       frame: 0,
       nextId: particles.length,
       animId: 0,
-      score: 0,
     };
 
     function nearestAhead(g: Gator, parts: Particle[]): number | null {
@@ -281,10 +315,7 @@ export function GatorChase({
         if (p.eaten) return;
         const jawX = g.dir === 1 ? g.x + GATOR_BODY_W * 0.85 : g.x - GATOR_BODY_W * 0.85;
         const dist = Math.hypot(jawX - p.x, g.y - p.baseY);
-        if (dist < EAT_DIST && g.mouth > 0.4) {
-          p.eaten = true;
-          s.score++;
-        }
+        if (dist < EAT_DIST && g.mouth > 0.4) p.eaten = true;
       });
 
       // Animate particles
@@ -315,14 +346,10 @@ export function GatorChase({
         }
       }
 
-      // Game HUD — title top-left, score top-right
-      ctx.save();
-      ctx.font = "bold 13px ui-monospace, monospace";
-      ctx.fillStyle = "#333";
-      ctx.fillText("GATORLEND", 16, 22);
-      ctx.textAlign = "right";
-      ctx.fillText(`EATEN  ${s.score ?? 0}`, W - 16, 22);
-      ctx.restore();
+      // Pixel-art title — centered, background layer (drawn before items/gator)
+      const titleW = "GATORLEND".length * (5 + FONT_GAP) * FONT_S - FONT_GAP * FONT_S;
+      ctx.fillStyle = "#1e1e1e";
+      drawPixelString(ctx, "GATORLEND", Math.round((W - titleW) / 2), 20);
 
       // Items
       s.particles.forEach((p) => {
