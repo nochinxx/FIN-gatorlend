@@ -20,12 +20,8 @@ export default function NewTextbookPage() {
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <Link href="/" style={{ color: "#17331d" }}>
-            Home
-          </Link>
-          <Link href="/catalog" style={{ color: "#17331d" }}>
-            Catalog
-          </Link>
+          <Link href="/" style={{ color: "#4ade80" }}>Home</Link>
+          <Link href="/catalog" style={{ color: "#4ade80" }}>Catalog</Link>
         </div>
       </div>
       <section
@@ -33,8 +29,8 @@ export default function NewTextbookPage() {
           marginTop: "2rem",
           padding: "1.5rem",
           borderRadius: 24,
-          background: "#fffaf0",
-          boxShadow: "0 20px 70px rgba(18, 33, 23, 0.08)"
+          border: "1px solid #242424",
+          background: "#111111"
         }}
       >
         <TextbookForm />

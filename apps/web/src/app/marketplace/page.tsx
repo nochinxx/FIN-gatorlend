@@ -35,8 +35,8 @@ function getListingBadge(listing: Awaited<ReturnType<typeof listMarketplaceListi
   return {
     mobileLabel: "Off-chain",
     label: "Not minted on-chain",
-    background: "#f3f3f3",
-    color: "#444444"
+    background: "rgba(255,255,255,0.08)",
+    color: "#aaaaaa"
   };
 }
 
@@ -61,7 +61,7 @@ function ListingImagePlaceholder() {
         height: "100%",
         display: "grid",
         placeItems: "center",
-        color: "#6a6a6a"
+        color: "#555555"
       }}
     >
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -137,20 +137,20 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           height: 100%;
         }
         .marketplace-card {
-          padding: 0.8rem;
+          padding: 1rem;
           border-radius: 22px;
-          border: 1px solid #ebebeb;
-          background: #ffffff;
+          border: 1px solid #242424;
+          background: #111111;
           display: grid;
-          gap: 0.75rem;
+          gap: 0.85rem;
           height: 100%;
         }
         .marketplace-card-image {
           position: relative;
           overflow: hidden;
           border-radius: 18px;
-          border: 1px solid #efefef;
-          background: #f7f7f7;
+          border: 1px solid #242424;
+          background: #1a1a1a;
           aspect-ratio: 0.9 / 1;
         }
         .marketplace-card-badges {
@@ -185,8 +185,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             gap: 1rem;
           }
           .marketplace-card {
-            padding: 1rem;
-            gap: 0.9rem;
+            padding: 1.25rem;
+            gap: 1rem;
           }
           .marketplace-card-pill {
             padding: 0.42rem 0.68rem;
@@ -200,18 +200,18 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
       `}</style>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12, color: "#666666" }}>
+          <p style={{ margin: 0, textTransform: "uppercase", letterSpacing: "0.16em", fontSize: 12, color: "#777777" }}>
             Marketplace
           </p>
           <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Active listings</h1>
-          <p style={{ maxWidth: 720, lineHeight: 1.6, color: "#4a4a4a" }}>
+          <p style={{ maxWidth: 720, lineHeight: 1.6, color: "#9a9a9a" }}>
             Browse listings for common academic items posted by verified school-email users. Create
             a listing, send a request, confirm the handoff, and update ownership inside the app.
             Wallet usage is optional and not required for normal marketplace activity.
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <Link href="/listings/new" style={{ color: "#17331d" }}>
+          <Link href="/listings/new" style={{ color: "#4ade80" }}>
             Create Listing
           </Link>
         </div>
@@ -225,12 +225,12 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             list="marketplace-filter-asset-types"
             defaultValue={assetTypeFilter}
             placeholder="textbook, tutoring, lab coat"
-            style={{ padding: "0.75rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+            style={{ padding: "0.75rem", borderRadius: 12, border: "1px solid #2a2a2a", background: "#141414", color: "#e5e5e5" }}
           />
         </label>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span style={{ fontSize: 14 }}>Listing type</span>
-          <select name="listing_type" defaultValue={listingTypeFilter} style={{ padding: "0.75rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
+          <select name="listing_type" defaultValue={listingTypeFilter} style={{ padding: "0.75rem", borderRadius: 12, border: "1px solid #2a2a2a", background: "#141414", color: "#e5e5e5", colorScheme: "dark" }}>
             <option value="">All</option>
             {PUBLIC_LISTING_TYPE_OPTIONS.map((listingType) => (
               <option key={listingType} value={listingType}>
@@ -239,7 +239,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             ))}
           </select>
         </label>
-        <button type="submit" style={{ alignSelf: "end", padding: "0.8rem 1rem", borderRadius: 999, border: "1px solid #d7d7d7", background: "#ffffff" }}>
+        <button type="submit" style={{ alignSelf: "end", padding: "0.8rem 1rem", borderRadius: 999, border: "1px solid #2a2a2a", background: "#141414", color: "#e5e5e5", cursor: "pointer" }}>
           Filter
         </button>
       </form>
@@ -251,7 +251,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
 
       <section className="marketplace-grid" style={{ marginTop: "2rem" }}>
         {filteredListings.length === 0 ? (
-          <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff", gridColumn: "1 / -1" }}>
+          <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #242424", background: "#111111", gridColumn: "1 / -1" }}>
             <p style={{ margin: 0 }}>No active listings match the current filters.</p>
           </article>
         ) : (
@@ -315,21 +315,21 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                     </div>
                   </div>
                   <div className="marketplace-card-copy">
-                    <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "#888888", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       {formatMarketplaceAssetTypeLabel(listing.asset_type)}
                     </p>
                     <h2 style={{ margin: 0, fontSize: "1rem", lineHeight: 1.2 }}>{listing.title}</h2>
                     <div className="marketplace-card-meta">
-                      <p style={{ margin: 0, color: "#4b4b4b", lineHeight: 1.6 }}>
+                      <p style={{ margin: 0, color: "#9a9a9a", lineHeight: 1.6 }}>
                         {listing.description || "No description added yet."}
                       </p>
-                      <div style={{ display: "grid", gap: "0.35rem", color: "#4a4a4a", fontSize: 14 }}>
+                      <div style={{ display: "grid", gap: "0.35rem", color: "#9a9a9a", fontSize: 14 }}>
                         <p style={{ margin: 0 }}><strong>Type:</strong> {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}</p>
                         <p style={{ margin: 0 }}><strong>Owner:</strong> {ownerLabel}</p>
                         <p style={{ margin: 0 }}><strong>Status:</strong> {listing.status}</p>
                         <p style={{ margin: 0 }}><strong>Tokenization:</strong> {formatTokenizationStatus(listing.tokenization_status)}</p>
                         {!isOwner ? (
-                          <p style={{ margin: 0, color: "#17331d", fontWeight: 700 }}>
+                          <p style={{ margin: 0, color: "#4ade80", fontWeight: 700 }}>
                             Open listing to send request
                           </p>
                         ) : null}
@@ -345,21 +345,21 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
 
       <section
         style={{
-          marginTop: "2rem",
+          marginTop: "3.5rem",
           padding: "1rem 1.1rem",
           borderRadius: 18,
-          border: "1px solid #ebebeb",
-          background: "#fafafa",
+          border: "1px solid #242424",
+          background: "#111111",
           display: "grid",
           gap: "0.45rem"
         }}
       >
-        <p style={{ margin: 0, fontWeight: 600 }}>How it works</p>
-        <p style={{ margin: 0, color: "#4f4f4f" }}>1. A verified user creates a listing.</p>
-        <p style={{ margin: 0, color: "#4f4f4f" }}>2. Another verified user requests it.</p>
-        <p style={{ margin: 0, color: "#4f4f4f" }}>3. The owner accepts or declines.</p>
-        <p style={{ margin: 0, color: "#4f4f4f" }}>4. Both sides confirm the handoff outside the app.</p>
-        <p style={{ margin: 0, color: "#4f4f4f" }}>5. The owner completes the transfer and the app updates ownership.</p>
+        <p style={{ margin: 0, fontWeight: 600, color: "#4ade80" }}>How it works</p>
+        <p style={{ margin: 0, color: "#9a9a9a" }}>1. A verified user creates a listing.</p>
+        <p style={{ margin: 0, color: "#9a9a9a" }}>2. Another verified user requests it.</p>
+        <p style={{ margin: 0, color: "#9a9a9a" }}>3. The owner accepts or declines.</p>
+        <p style={{ margin: 0, color: "#9a9a9a" }}>4. Both sides confirm the handoff outside the app.</p>
+        <p style={{ margin: 0, color: "#9a9a9a" }}>5. The owner completes the transfer and the app updates ownership.</p>
       </section>
     </main>
   );

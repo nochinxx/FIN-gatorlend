@@ -27,13 +27,7 @@ function ListingThumbPlaceholder() {
   return (
     <div
       aria-hidden="true"
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "grid",
-        placeItems: "center",
-        color: "#6a6a6a"
-      }}
+      style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "#555555" }}
     >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 7h8" />
@@ -45,17 +39,11 @@ function ListingThumbPlaceholder() {
 }
 
 type MyListingsPageProps = {
-  searchParams: Promise<{
-    notice?: string;
-    error?: string;
-  }>;
+  searchParams: Promise<{ notice?: string; error?: string }>;
 };
 
 function formatRequestTime(value: string | null | undefined) {
-  if (!value) {
-    return null;
-  }
-
+  if (!value) return null;
   return new Date(value).toLocaleString();
 }
 
@@ -76,10 +64,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
   const listingImagesById = new Map<string, typeof listingImages>();
 
   for (const item of receivedRequests) {
-    if (!item.listing.id) {
-      continue;
-    }
-
+    if (!item.listing.id) continue;
     const currentItems = requestsByListingId.get(item.listing.id) ?? [];
     currentItems.push(item);
     requestsByListingId.set(item.listing.id, currentItems);
@@ -107,7 +92,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
             My listings
           </p>
           <h1 style={{ marginBottom: "0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)" }}>Manage your listing table</h1>
-          <p style={{ margin: 0, color: "#4f4f4f", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, color: "#9a9a9a", lineHeight: 1.6 }}>
             Track status, review the request queue, accept or decline inline, and remove listings
             that should no longer appear in the marketplace.
           </p>
@@ -124,7 +109,8 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
             color: "#ffffff",
             textDecoration: "none",
             fontWeight: 700,
-            height: "fit-content"
+            height: "fit-content",
+            border: "1px solid #2a2a2a"
           }}
         >
           Create listing
@@ -132,20 +118,20 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
       </div>
 
       {resolvedSearchParams.notice ? (
-        <p style={{ marginTop: "1.5rem", padding: "0.9rem 1rem", borderRadius: 12, background: "#edf7ef", color: "#1f5f30" }}>
+        <p style={{ marginTop: "1.5rem", padding: "0.9rem 1rem", borderRadius: 12, background: "rgba(34,197,94,0.12)", color: "#86efac" }}>
           Action completed: {resolvedSearchParams.notice}
         </p>
       ) : null}
 
       {resolvedSearchParams.error ? (
-        <p style={{ marginTop: "1.5rem", padding: "0.9rem 1rem", borderRadius: 12, background: "#fff3ef", color: "#7f2413" }}>
+        <p style={{ marginTop: "1.5rem", padding: "0.9rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {resolvedSearchParams.error}
         </p>
       ) : null}
 
       <section style={{ marginTop: "2rem" }}>
         {listings.length === 0 ? (
-          <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #ebebeb", background: "#ffffff" }}>
+          <article style={{ padding: "1.5rem", borderRadius: 20, border: "1px solid #242424", background: "#111111" }}>
             <p style={{ margin: 0 }}>You have not created any listings yet.</p>
           </article>
         ) : (
@@ -157,17 +143,10 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                 return (
                   <article
                     key={`mobile-${listing.id}`}
-                    style={{
-                      padding: "0.95rem",
-                      borderRadius: 18,
-                      border: "1px solid #ebebeb",
-                      background: "#ffffff",
-                      display: "grid",
-                      gap: "0.9rem"
-                    }}
+                    style={{ padding: "0.95rem", borderRadius: 18, border: "1px solid #242424", background: "#111111", display: "grid", gap: "0.9rem" }}
                   >
                     <div style={{ display: "grid", gridTemplateColumns: "64px minmax(0, 1fr)", gap: "0.85rem", alignItems: "center" }}>
-                      <div style={{ width: 64, height: 64, overflow: "hidden", borderRadius: 14, border: "1px solid #ececec", background: "#f7f7f7", position: "relative" }}>
+                      <div style={{ width: 64, height: 64, overflow: "hidden", borderRadius: 14, border: "1px solid #242424", background: "#1a1a1a", position: "relative" }}>
                         {imageSrc ? (
                           <Image
                             src={imageSrc}
@@ -186,7 +165,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                       </div>
                       <div style={{ display: "grid", gap: "0.25rem" }}>
                         <strong style={{ fontSize: "1rem", lineHeight: 1.25 }}>{listing.title}</strong>
-                        <span style={{ fontSize: 13, color: "#666666" }}>Manage this listing</span>
+                        <span style={{ fontSize: 13, color: "#888888" }}>Manage this listing</span>
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "0.65rem" }}>
@@ -199,8 +178,8 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                           minHeight: 38,
                           padding: "0.55rem 0.7rem",
                           borderRadius: 10,
-                          border: "1px solid #d7d7d7",
-                          color: "#111111",
+                          border: "1px solid #2a2a2a",
+                          color: "#e5e5e5",
                           fontSize: 14,
                           fontWeight: 700,
                           textDecoration: "none"
@@ -218,7 +197,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                           padding: "0.55rem 0.7rem",
                           borderRadius: 10,
                           border: 0,
-                          background: "#17331d",
+                          background: "#16a34a",
                           color: "#ffffff",
                           fontSize: 14,
                           fontWeight: 700,
@@ -244,18 +223,18 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
               })}
             </div>
 
-            <div className="my-listings-desktop" style={{ overflowX: "auto", border: "1px solid #ebebeb", borderRadius: 22, background: "#ffffff" }}>
+            <div className="my-listings-desktop" style={{ overflowX: "auto", border: "1px solid #242424", borderRadius: 22, background: "#111111" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 920 }}>
-              <thead>
-                <tr style={{ background: "#fafafa", textAlign: "left" }}>
-                  <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>Item</th>
-                  <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>Type</th>
-                  <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>Status</th>
-                  <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>Pending</th>
-                  <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>Record</th>
-                  <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#666666" }}>Actions</th>
-                </tr>
-              </thead>
+                <thead>
+                  <tr style={{ background: "#141414", textAlign: "left" }}>
+                    <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#888888" }}>Item</th>
+                    <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#888888" }}>Type</th>
+                    <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#888888" }}>Status</th>
+                    <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#888888" }}>Pending</th>
+                    <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#888888" }}>Record</th>
+                    <th style={{ padding: "0.95rem 1rem", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "#888888" }}>Actions</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {listings.map(({ listing, pendingRequestCount }) => {
                     const listingRequests = requestsByListingId.get(listing.id!) ?? [];
@@ -263,10 +242,10 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
 
                     return (
                       <Fragment key={listing.id}>
-                        <tr style={{ borderTop: "1px solid #f0f0f0", verticalAlign: "top" }}>
+                        <tr style={{ borderTop: "1px solid #1e1e1e", verticalAlign: "top" }}>
                           <td style={{ padding: "1rem" }}>
                             <div style={{ display: "grid", gridTemplateColumns: "56px minmax(0, 1fr)", gap: "0.8rem", alignItems: "start" }}>
-                              <div style={{ width: 56, height: 56, overflow: "hidden", borderRadius: 12, border: "1px solid #ececec", background: "#f7f7f7", position: "relative" }}>
+                              <div style={{ width: 56, height: 56, overflow: "hidden", borderRadius: 12, border: "1px solid #242424", background: "#1a1a1a", position: "relative" }}>
                                 {imageSrc ? (
                                   <Image
                                     src={imageSrc}
@@ -285,62 +264,60 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                               </div>
                               <div style={{ display: "grid", gap: "0.35rem" }}>
                                 <strong style={{ fontSize: "1rem" }}>{listing.title}</strong>
-                                <span style={{ color: "#4f4f4f", lineHeight: 1.5 }}>
+                                <span style={{ color: "#9a9a9a", lineHeight: 1.5 }}>
                                   {listing.description || "No description added yet."}
                                 </span>
                               </div>
                             </div>
                           </td>
-                          <td style={{ padding: "1rem", color: "#333333" }}>
+                          <td style={{ padding: "1rem", color: "#cccccc" }}>
                             <div style={{ display: "grid", gap: "0.2rem" }}>
                               <span>{formatMarketplaceAssetTypeLabel(listing.asset_type)}</span>
-                              <span style={{ color: "#666666", textTransform: "capitalize" }}>
+                              <span style={{ color: "#888888", textTransform: "capitalize" }}>
                                 {PUBLIC_LISTING_TYPE_LABELS[listing.listing_type as keyof typeof PUBLIC_LISTING_TYPE_LABELS] ?? listing.listing_type.replaceAll("_", " ")}
                               </span>
                             </div>
                           </td>
                           <td style={{ padding: "1rem" }}>
-                            <span style={{ padding: "0.35rem 0.65rem", borderRadius: 999, background: "#f3f3f3", textTransform: "capitalize" }}>
+                            <span style={{ padding: "0.35rem 0.65rem", borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "#aaaaaa", textTransform: "capitalize" }}>
                               {listing.status}
                             </span>
                           </td>
                           <td style={{ padding: "1rem", fontWeight: 700 }}>{pendingRequestCount}</td>
-                          <td style={{ padding: "1rem", fontFamily: 'ui-monospace, SFMono-Regular, monospace', fontSize: 14 }}>
+                          <td style={{ padding: "1rem", fontFamily: "ui-monospace, SFMono-Regular, monospace", fontSize: 14, color: "#9a9a9a" }}>
                             {listing.mock_token_id ?? "Not assigned"}
                           </td>
                           <td style={{ padding: "1rem" }}>
-                          <div style={{ display: "grid", gap: "0.6rem", minWidth: 170 }}>
-                            <Link href={`/listings/${listing.id}`} style={{ color: "#111111", fontWeight: 700, textDecoration: "none" }}>
-                              View detail
-                            </Link>
-                            <Link href="/requests" style={{ color: "#17331d", fontWeight: 700, textDecoration: "none" }}>
-                              Requests
-                            </Link>
-                            <form action={deleteListingAction}>
-                              <input type="hidden" name="listing_id" value={listing.id} />
-                              <FormSubmitButton
-                                pendingLabel="Deleting..."
-                                style={{ width: "100%", padding: "0.75rem 0.9rem", borderRadius: 12, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}
-                              >
-                                Delete listing
-                              </FormSubmitButton>
+                            <div style={{ display: "grid", gap: "0.6rem", minWidth: 170 }}>
+                              <Link href={`/listings/${listing.id}`} style={{ color: "#e5e5e5", fontWeight: 700, textDecoration: "none" }}>
+                                View detail
+                              </Link>
+                              <Link href="/requests" style={{ color: "#4ade80", fontWeight: 700, textDecoration: "none" }}>
+                                Requests
+                              </Link>
+                              <form action={deleteListingAction}>
+                                <input type="hidden" name="listing_id" value={listing.id} />
+                                <FormSubmitButton
+                                  pendingLabel="Deleting..."
+                                  style={{ width: "100%", padding: "0.75rem 0.9rem", borderRadius: 12, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}
+                                >
+                                  Delete listing
+                                </FormSubmitButton>
                               </form>
                             </div>
                           </td>
                         </tr>
 
-                        <tr style={{ borderTop: "1px solid #f5f5f5", background: "#fcfcfc" }}>
+                        <tr style={{ borderTop: "1px solid #1e1e1e", background: "#141414" }}>
                           <td colSpan={6} style={{ padding: "1rem" }}>
                             <div style={{ display: "grid", gap: "0.9rem" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                                 <strong>Request queue</strong>
-                                <span style={{ color: "#666666", fontSize: 14 }}>
-                                  Oldest request appears first.
-                                </span>
+                                <span style={{ color: "#888888", fontSize: 14 }}>Oldest request appears first.</span>
                               </div>
 
                               {listingRequests.length === 0 ? (
-                                <p style={{ margin: 0, color: "#5a5a5a" }}>No requests for this listing yet.</p>
+                                <p style={{ margin: 0, color: "#9a9a9a" }}>No requests for this listing yet.</p>
                               ) : (
                                 listingRequests.map((item) => {
                                   const { request } = item;
@@ -349,14 +326,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                                   return (
                                     <div
                                       key={request.id}
-                                      style={{
-                                        padding: "1rem",
-                                        borderRadius: 16,
-                                        border: "1px solid #ececec",
-                                        background: "#ffffff",
-                                        display: "grid",
-                                        gap: "0.55rem"
-                                      }}
+                                      style={{ padding: "1rem", borderRadius: 16, border: "1px solid #242424", background: "#111111", display: "grid", gap: "0.55rem" }}
                                     >
                                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.55rem 1rem" }}>
                                         <p style={{ margin: 0 }}><strong>Requester:</strong> {getProfileIdentityLabel(requesterProfilesById.get(request.requester_user_id))}</p>
@@ -364,7 +334,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                                         {request.message ? <p style={{ margin: 0 }}><strong>Message:</strong> {request.message}</p> : null}
                                         {request.handoff_location ? <p style={{ margin: 0 }}><strong>Handoff:</strong> {request.handoff_location}</p> : null}
                                         {request.availability_note ? <p style={{ margin: 0 }}><strong>Availability:</strong> {request.availability_note}</p> : null}
-                                        <p style={{ margin: 0, color: "#5a5a5a", fontSize: 14 }}>
+                                        <p style={{ margin: 0, color: "#9a9a9a", fontSize: 14 }}>
                                           <strong>Requested:</strong> {formatRequestTime(request.requested_at) ?? "Pending"}
                                         </p>
                                       </div>
@@ -376,17 +346,14 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                                             form={acceptFormId}
                                             rows={2}
                                             placeholder="Accepted. Suggested meetup details..."
-                                            style={{ width: "100%", padding: "0.8rem 0.9rem", borderRadius: 14, border: "1px solid #d7d7d7", resize: "vertical" }}
+                                            style={{ width: "100%", padding: "0.8rem 0.9rem", borderRadius: 14, border: "1px solid #2a2a2a", background: "#141414", color: "#e5e5e5", resize: "vertical" }}
                                           />
                                           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "0.65rem" }}>
                                             <form id={acceptFormId} action={acceptRequestAction}>
                                               <input type="hidden" name="listing_id" value={listing.id} />
                                               <input type="hidden" name="request_id" value={request.id} />
                                               <input type="hidden" name="redirect_to" value="/my-listings?notice=accepted" />
-                                              <FormSubmitButton
-                                                pendingLabel="Accepting..."
-                                                style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#1f7a36", color: "#ffffff", fontWeight: 700 }}
-                                              >
+                                              <FormSubmitButton pendingLabel="Accepting..." style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#1f7a36", color: "#ffffff", fontWeight: 700 }}>
                                                 Accept
                                               </FormSubmitButton>
                                             </form>
@@ -394,10 +361,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                                               <input type="hidden" name="listing_id" value={listing.id} />
                                               <input type="hidden" name="request_id" value={request.id} />
                                               <input type="hidden" name="redirect_to" value="/my-listings?notice=declined" />
-                                              <FormSubmitButton
-                                                pendingLabel="Declining..."
-                                                style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}
-                                              >
+                                              <FormSubmitButton pendingLabel="Declining..." style={{ width: "100%", padding: "0.8rem 1rem", borderRadius: 14, border: 0, background: "#b9382f", color: "#ffffff", fontWeight: 700 }}>
                                                 Decline
                                               </FormSubmitButton>
                                             </form>

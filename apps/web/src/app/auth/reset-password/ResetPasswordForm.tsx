@@ -5,6 +5,14 @@ import { useState } from "react";
 import { MIN_PASSWORD_LENGTH, validatePassword } from "@/lib/auth/password";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+const inputStyle = {
+  padding: "0.9rem",
+  borderRadius: 12,
+  border: "1px solid #2a2a2a",
+  background: "#141414",
+  color: "#e5e5e5"
+} as const;
+
 export function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -55,7 +63,7 @@ export function ResetPasswordForm() {
           minLength={MIN_PASSWORD_LENGTH}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
@@ -67,18 +75,18 @@ export function ResetPasswordForm() {
           minLength={MIN_PASSWORD_LENGTH}
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
       {error ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#fff3ef", color: "#7f2413" }}>
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {error}
         </p>
       ) : null}
 
       {message ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#edf7ef", color: "#1f5f30" }}>
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(34,197,94,0.12)", color: "#86efac" }}>
           {message}
         </p>
       ) : null}

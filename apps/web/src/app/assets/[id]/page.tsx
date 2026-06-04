@@ -50,12 +50,8 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <Link href="/catalog" style={{ color: "#17331d" }}>
-            Catalog
-          </Link>
-          <Link href="/textbooks/new" style={{ color: "#17331d" }}>
-            Create asset
-          </Link>
+          <Link href="/catalog" style={{ color: "#4ade80" }}>Catalog</Link>
+          <Link href="/textbooks/new" style={{ color: "#4ade80" }}>Create asset</Link>
         </div>
       </div>
 
@@ -64,18 +60,18 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           marginTop: "2rem",
           padding: "1.5rem",
           borderRadius: 24,
-          background: hasMismatch ? "#ffe8e0" : "#fffaf0",
-          boxShadow: "0 20px 70px rgba(18, 33, 23, 0.08)"
+          background: hasMismatch ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.08)",
+          border: hasMismatch ? "1px solid rgba(239,68,68,0.25)" : "1px solid rgba(34,197,94,0.2)"
         }}
       >
         <h2 style={{ marginTop: 0 }}>Integrity status</h2>
         {hasMismatch ? (
-          <p style={{ color: "#8b2414", fontWeight: 700 }}>
+          <p style={{ margin: 0, color: "#fca5a5", fontWeight: 700 }}>
             Integrity warning: the Supabase record does not match live XRPL textbook state. Do not
             treat this asset as verified until the mismatch is resolved.
           </p>
         ) : (
-          <p style={{ color: "#17331d", fontWeight: 700 }}>
+          <p style={{ margin: 0, color: "#86efac", fontWeight: 700 }}>
             Integrity check passed against the live XRPL NFT. Current verification status:{" "}
             {asset.verification_status}.
           </p>
@@ -90,14 +86,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))"
         }}
       >
-        <article
-          style={{
-            padding: "1.5rem",
-            borderRadius: 20,
-            background: "#fffaf0",
-            boxShadow: "0 20px 70px rgba(18, 33, 23, 0.08)"
-          }}
-        >
+        <article style={{ padding: "1.5rem", borderRadius: 20, background: "#111111", border: "1px solid #242424" }}>
           <h2 style={{ marginTop: 0 }}>Supabase record</h2>
           <p>Asset type: {asset.asset_type}</p>
           <p>Owner wallet: {asset.owner_wallet}</p>
@@ -107,14 +96,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           <p>Edition: {asset.metadata.edition}</p>
           <p>Condition: {asset.metadata.condition}</p>
         </article>
-        <article
-          style={{
-            padding: "1.5rem",
-            borderRadius: 20,
-            background: "#fffaf0",
-            boxShadow: "0 20px 70px rgba(18, 33, 23, 0.08)"
-          }}
-        >
+        <article style={{ padding: "1.5rem", borderRadius: 20, background: "#111111", border: "1px solid #242424" }}>
           <h2 style={{ marginTop: 0 }}>XRPL comparison state</h2>
           <p>Exists on recorded owner wallet: {xrplState.exists ? "Yes" : "No"}</p>
           <p>Asset type: {xrplState.asset_type}</p>

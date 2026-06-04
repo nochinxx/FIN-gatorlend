@@ -69,6 +69,19 @@ async function exchangeToken(
   return hasAccessToken ? null : "auth-exchange-failed";
 }
 
+const cardStyle: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 520,
+  padding: "2rem",
+  borderRadius: 24,
+  background: "#111111",
+  border: "1px solid #242424",
+  boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+  textAlign: "center",
+  display: "grid",
+  gap: "1.2rem"
+};
+
 export function ConfirmAuthClient() {
   const [stage, setStage] = useState<Stage>("checking");
   const searchParams = useSearchParams();
@@ -150,24 +163,11 @@ export function ConfirmAuthClient() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const cardStyle: React.CSSProperties = {
-    width: "100%",
-    maxWidth: 520,
-    padding: "2rem",
-    borderRadius: 24,
-    background: "#ffffff",
-    border: "1px solid #ebebeb",
-    boxShadow: "0 10px 40px rgba(17, 17, 17, 0.05)",
-    textAlign: "center",
-    display: "grid",
-    gap: "1.2rem"
-  };
-
   if (stage === "checking" || stage === "working") {
     return (
       <section style={cardStyle}>
         <h1 style={{ margin: 0, fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Finishing sign-in</h1>
-        <p style={{ margin: 0, lineHeight: 1.6, color: "#4f4f4f" }}>Signing you in&hellip;</p>
+        <p style={{ margin: 0, lineHeight: 1.6, color: "#9a9a9a" }}>Signing you in&hellip;</p>
       </section>
     );
   }
@@ -175,7 +175,7 @@ export function ConfirmAuthClient() {
   return (
     <section style={cardStyle}>
       <h1 style={{ margin: 0, fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Confirm sign-in</h1>
-      <p style={{ margin: 0, lineHeight: 1.6, color: "#4f4f4f" }}>
+      <p style={{ margin: 0, lineHeight: 1.6, color: "#9a9a9a" }}>
         Click below to complete your sign-in. Make sure you&rsquo;re opening this link in the same
         browser where you signed up.
       </p>

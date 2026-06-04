@@ -24,7 +24,7 @@ export default async function NewListingPage() {
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <Link href="/marketplace" style={{ color: "#17331d" }}>
+          <Link href="/marketplace" style={{ color: "#4ade80" }}>
             Marketplace
           </Link>
         </div>
@@ -35,22 +35,22 @@ export default async function NewListingPage() {
           marginTop: "2rem",
           padding: "1.5rem",
           borderRadius: 24,
-          border: "1px solid #ebebeb",
-          background: "#ffffff"
+          border: "1px solid #242424",
+          background: "#111111"
         }}
       >
-        <div style={{ marginBottom: "1.25rem", display: "grid", gap: "0.4rem", color: "#4f4f4f" }}>
-          <p style={{ margin: 0 }}><strong>Step 1:</strong> create the listing and publish it.</p>
-          <p style={{ margin: 0 }}><strong>Step 2:</strong> wait for another verified user to request it.</p>
-          <p style={{ margin: 0 }}><strong>Step 3:</strong> accept the request, confirm the handoff, then complete the ownership update.</p>
+        <div style={{ marginBottom: "1.25rem", display: "grid", gap: "0.4rem", color: "#9a9a9a" }}>
+          <p style={{ margin: 0 }}><strong style={{ color: "#e5e5e5" }}>Step 1:</strong> create the listing and publish it.</p>
+          <p style={{ margin: 0 }}><strong style={{ color: "#e5e5e5" }}>Step 2:</strong> wait for another verified user to request it.</p>
+          <p style={{ margin: 0 }}><strong style={{ color: "#e5e5e5" }}>Step 3:</strong> accept the request, confirm the handoff, then complete the ownership update.</p>
         </div>
         <p
           style={{
             margin: "0 0 1.25rem",
             padding: "0.9rem 1rem",
             borderRadius: 14,
-            background: "#fff8ea",
-            color: "#6a4c00",
+            background: "rgba(234,179,8,0.12)",
+            color: "#fde047",
             lineHeight: 1.6
           }}
         >

@@ -23,6 +23,14 @@ const initialState: CreateListingFormState = {
   error: null
 };
 
+const inputStyle = {
+  padding: "0.85rem",
+  borderRadius: 12,
+  border: "1px solid #2a2a2a",
+  background: "#141414",
+  color: "#e5e5e5"
+} as const;
+
 type CreateListingFormProps = {
   assetTypeSuggestions: string[];
 };
@@ -80,12 +88,12 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
       <section style={{ display: "grid", gap: "0.85rem" }}>
         <div>
           <h2 style={{ margin: 0, fontSize: "1.2rem" }}>Add photos of your item</h2>
-          <p style={{ margin: "0.35rem 0 0", color: "#4f4f4f", lineHeight: 1.6 }}>
+          <p style={{ margin: "0.35rem 0 0", color: "#9a9a9a", lineHeight: 1.6 }}>
             Clear photos help other students understand condition before requesting.
           </p>
         </div>
         <label style={{ display: "grid", gap: "0.35rem" }}>
-          <span>
+          <span style={{ color: "#9a9a9a" }}>
             Upload 1 to {LISTING_IMAGE_MAX_COUNT} photos
           </span>
           <input
@@ -95,10 +103,10 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
             multiple
             accept={LISTING_IMAGE_ALLOWED_TYPES.join(",")}
             onChange={handleFileChange}
-            style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+            style={inputStyle}
           />
         </label>
-        <p style={{ margin: 0, color: "#5a5a5a", fontSize: 14 }}>
+        <p style={{ margin: 0, color: "#9a9a9a", fontSize: 14 }}>
           Accepted types: JPEG, PNG, WEBP. Max size: {Math.round(LISTING_IMAGE_MAX_BYTES / (1024 * 1024))}MB each.
         </p>
         <p
@@ -106,8 +114,8 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
             margin: 0,
             padding: "0.9rem 1rem",
             borderRadius: 14,
-            background: "#fff8ea",
-            color: "#6a4c00",
+            background: "rgba(234,179,8,0.12)",
+            color: "#fde047",
             lineHeight: 1.6
           }}
         >
@@ -130,9 +138,9 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
                     position: "relative",
                     overflow: "hidden",
                     borderRadius: 16,
-                    border: "1px solid #ebebeb",
+                    border: "1px solid #242424",
                     aspectRatio: "1 / 1",
-                    background: "#f7f7f7"
+                    background: "#1a1a1a"
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -142,7 +150,7 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 </div>
-                <figcaption style={{ fontSize: 12, color: "#5a5a5a", lineHeight: 1.4 }}>
+                <figcaption style={{ fontSize: 12, color: "#9a9a9a", lineHeight: 1.4 }}>
                   {index === 0 ? "Cover image" : `Image ${index + 1}`}
                 </figcaption>
               </figure>
@@ -160,12 +168,12 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
             value={assetTypeValue}
             onChange={(event) => setAssetTypeValue(event.target.value)}
             placeholder="textbook, lab coat, tutoring, calculator"
-            style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+            style={inputStyle}
           />
         </label>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Listing type</span>
-          <select name="listing_type" defaultValue="sell" style={{ padding: "0.85rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
+          <select name="listing_type" defaultValue="sell" style={{ ...inputStyle, colorScheme: "dark" }}>
             {PUBLIC_LISTING_TYPE_OPTIONS.map((value) => (
               <option key={value} value={value}>
                 {PUBLIC_LISTING_TYPE_LABELS[value]}
@@ -193,9 +201,9 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
               justifyContent: "center",
               padding: "0.45rem 0.7rem",
               borderRadius: 999,
-              border: 0,
-              background: assetTypeValue === value ? "#17331d" : "#f3f3f3",
-              color: assetTypeValue === value ? "#ffffff" : "#444444",
+              border: assetTypeValue === value ? 0 : "1px solid #2a2a2a",
+              background: assetTypeValue === value ? "#16a34a" : "#1a1a1a",
+              color: assetTypeValue === value ? "#ffffff" : "#9a9a9a",
               fontSize: 13,
               cursor: "pointer"
             }}
@@ -207,18 +215,18 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Title</span>
-        <input name="title" required style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+        <input name="title" required style={{ ...inputStyle, padding: "0.9rem" }} />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Description</span>
-        <textarea name="description" rows={4} style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+        <textarea name="description" rows={4} style={{ ...inputStyle, padding: "0.9rem", resize: "vertical" }} />
       </label>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Condition</span>
-          <select name="condition" defaultValue="" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}>
+          <select name="condition" defaultValue="" style={{ ...inputStyle, padding: "0.9rem", colorScheme: "dark" }}>
             <option value="" disabled>Select condition</option>
             <option value="new">New</option>
             <option value="like_new">Like new</option>
@@ -232,23 +240,23 @@ export function CreateListingForm({ assetTypeSuggestions }: CreateListingFormPro
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Reference value</span>
-          <input name="price_amount" inputMode="decimal" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+          <input name="price_amount" inputMode="decimal" style={{ ...inputStyle, padding: "0.9rem" }} />
         </label>
         <label style={{ display: "grid", gap: "0.35rem" }}>
           <span>Reference type</span>
-          <input name="price_type" placeholder="estimate, replacement, note" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+          <input name="price_type" placeholder="estimate, replacement, note" style={{ ...inputStyle, padding: "0.9rem" }} />
         </label>
       </div>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Exchange preferences</span>
-        <input name="payment_methods" placeholder="meet near library, weekday afternoon, flexible" style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }} />
+        <input name="payment_methods" placeholder="meet near library, weekday afternoon, flexible" style={{ ...inputStyle, padding: "0.9rem" }} />
       </label>
 
       <input type="hidden" name="metadata" value="{}" />
 
       {localError || state.error ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#fff3ef", color: "#7f2413" }}>
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {localError ?? state.error}
         </p>
       ) : null}
