@@ -27,6 +27,14 @@ const buttonStyle = {
   cursor: "pointer"
 } as const;
 
+const inputStyle = {
+  padding: "0.9rem 1rem",
+  borderRadius: 12,
+  border: "1px solid #2a2a2a",
+  background: "#141414",
+  color: "#e5e5e5"
+} as const;
+
 export function LoginForm({ nextPath }: LoginFormProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -193,9 +201,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
             style={{
               padding: "0.7rem 0.95rem",
               borderRadius: 999,
-              border: value === mode ? "1px solid #111111" : "1px solid #d7d7d7",
-              background: value === mode ? "#111111" : "#ffffff",
-              color: value === mode ? "#ffffff" : "#111111",
+              border: value === mode ? "1px solid #444444" : "1px solid #2a2a2a",
+              background: value === mode ? "#1e1e1e" : "transparent",
+              color: value === mode ? "#e5e5e5" : "#9a9a9a",
               fontWeight: 700,
               cursor: "pointer"
             }}
@@ -208,37 +216,25 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       {mode === "login" ? (
         <form onSubmit={handleLoginSubmit} style={{ display: "grid", gap: "1rem" }}>
           <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontWeight: 600, color: "#222222" }}>School email</span>
+            <span style={{ fontWeight: 600 }}>School email</span>
             <input
               type="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="name@sfsu.edu"
-              style={{
-                padding: "0.9rem 1rem",
-                borderRadius: 12,
-                border: "1px solid #d7d7d7",
-                background: "#ffffff",
-                color: "#111111"
-              }}
+              style={inputStyle}
             />
           </label>
           <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontWeight: 600, color: "#222222" }}>Password</span>
+            <span style={{ fontWeight: 600 }}>Password</span>
             <input
               type="password"
               required
               minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              style={{
-                padding: "0.9rem 1rem",
-                borderRadius: 12,
-                border: "1px solid #d7d7d7",
-                background: "#ffffff",
-                color: "#111111"
-              }}
+              style={inputStyle}
             />
           </label>
           <button type="submit" disabled={isSubmitting} style={{ ...buttonStyle, opacity: isSubmitting ? 0.7 : 1 }}>
@@ -250,54 +246,36 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       {mode === "signup" ? (
         <form onSubmit={handleSignupSubmit} style={{ display: "grid", gap: "1rem" }}>
           <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontWeight: 600, color: "#222222" }}>School email</span>
+            <span style={{ fontWeight: 600 }}>School email</span>
             <input
               type="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="name@sfsu.edu"
-              style={{
-                padding: "0.9rem 1rem",
-                borderRadius: 12,
-                border: "1px solid #d7d7d7",
-                background: "#ffffff",
-                color: "#111111"
-              }}
+              style={inputStyle}
             />
           </label>
           <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontWeight: 600, color: "#222222" }}>Password</span>
+            <span style={{ fontWeight: 600 }}>Password</span>
             <input
               type="password"
               required
               minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              style={{
-                padding: "0.9rem 1rem",
-                borderRadius: 12,
-                border: "1px solid #d7d7d7",
-                background: "#ffffff",
-                color: "#111111"
-              }}
+              style={inputStyle}
             />
           </label>
           <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontWeight: 600, color: "#222222" }}>Confirm password</span>
+            <span style={{ fontWeight: 600 }}>Confirm password</span>
             <input
               type="password"
               required
               minLength={MIN_PASSWORD_LENGTH}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              style={{
-                padding: "0.9rem 1rem",
-                borderRadius: 12,
-                border: "1px solid #d7d7d7",
-                background: "#ffffff",
-                color: "#111111"
-              }}
+              style={inputStyle}
             />
           </label>
           <button type="submit" disabled={isSubmitting} style={{ ...buttonStyle, opacity: isSubmitting ? 0.7 : 1 }}>
@@ -309,20 +287,14 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       {mode === "forgot" ? (
         <form onSubmit={handleForgotPasswordSubmit} style={{ display: "grid", gap: "1rem" }}>
           <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontWeight: 600, color: "#222222" }}>School email</span>
+            <span style={{ fontWeight: 600 }}>School email</span>
             <input
               type="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="name@sfsu.edu"
-              style={{
-                padding: "0.9rem 1rem",
-                borderRadius: 12,
-                border: "1px solid #d7d7d7",
-                background: "#ffffff",
-                color: "#111111"
-              }}
+              style={inputStyle}
             />
           </label>
           <button type="submit" disabled={isSubmitting} style={{ ...buttonStyle, opacity: isSubmitting ? 0.7 : 1 }}>
@@ -332,33 +304,16 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       ) : null}
 
       {error ? (
-        <p
-          style={{
-            margin: 0,
-            padding: "0.85rem 1rem",
-            borderRadius: 12,
-            background: "#fff3ef",
-            color: "#7f2413"
-          }}
-        >
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {error}
         </p>
       ) : null}
 
       {message ? (
-        <p
-          style={{
-            margin: 0,
-            padding: "0.85rem 1rem",
-            borderRadius: 12,
-            background: "#f5f5f5",
-            color: "#111111"
-          }}
-        >
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#1e1e1e", color: "#e5e5e5" }}>
           {message}
         </p>
       ) : null}
-
     </div>
   );
 }

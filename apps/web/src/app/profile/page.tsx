@@ -22,7 +22,7 @@ export default async function ProfilePage() {
           Profile
         </p>
         <h1 style={{ margin: 0, fontSize: "clamp(2rem, 5vw, 3rem)" }}>Manage your profile</h1>
-        <p style={{ margin: 0, color: "#4f4f4f", lineHeight: 1.6 }}>
+        <p style={{ margin: 0, color: "#9a9a9a", lineHeight: 1.6 }}>
           Your marketplace ownership records stay tied to your account ID, so updating your username
           does not break listing history.
         </p>
@@ -33,8 +33,8 @@ export default async function ProfilePage() {
           marginTop: "2rem",
           padding: "1.5rem",
           borderRadius: 24,
-          border: "1px solid #ebebeb",
-          background: "#ffffff"
+          border: "1px solid #242424",
+          background: "#111111"
         }}
       >
         <ProfileForm

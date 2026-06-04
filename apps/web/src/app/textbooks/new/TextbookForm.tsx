@@ -72,8 +72,8 @@ function SubmitButton({ disabled, isSubmitting }: { disabled: boolean; isSubmitt
         padding: "0.9rem 1.2rem",
         borderRadius: 12,
         border: 0,
-        background: disabled ? "#899688" : "#17331d",
-        color: "#fffaf0",
+        background: disabled ? "#333333" : "#16a34a",
+        color: disabled ? "#666666" : "#ffffff",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer"
       }}
@@ -107,8 +107,9 @@ function Field({
         style={{
           padding: "0.85rem 0.95rem",
           borderRadius: 12,
-          border: "1px solid #b4b09c",
-          background: "#fffdf6"
+          border: "1px solid #2a2a2a",
+          background: "#141414",
+          color: "#e5e5e5"
         }}
       />
     </label>
@@ -284,14 +285,14 @@ export function TextbookForm() {
           gap: "0.75rem",
           padding: "1rem",
           borderRadius: 16,
-          background: "#f4eddc",
-          border: "1px solid #d9d2be"
+          background: "#1a1a1a",
+          border: "1px solid #2a2a2a"
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
           <div>
             <h2 style={{ margin: 0, fontSize: "1.1rem" }}>Connected wallet</h2>
-            <p style={{ margin: "0.35rem 0 0", color: "#475447" }}>
+            <p style={{ margin: "0.35rem 0 0", color: "#9a9a9a" }}>
               Textbook mints now come from the connected Crossmark wallet on XRPL testnet.
             </p>
           </div>
@@ -303,8 +304,8 @@ export function TextbookForm() {
               padding: "0.8rem 1rem",
               borderRadius: 999,
               border: 0,
-              background: "#17331d",
-              color: "#fffaf0",
+              background: "#16a34a",
+              color: "#ffffff",
               fontWeight: 700,
               cursor:
                 !walletState.available || walletState.status === "connecting" || isPending || isSubmitting
@@ -315,80 +316,46 @@ export function TextbookForm() {
             {walletState.address ? "Reconnect Crossmark" : "Connect Crossmark"}
           </button>
         </div>
-        <p style={{ margin: 0 }}>
-          <strong>Status:</strong> {walletState.status}
-        </p>
-        <p style={{ margin: 0 }}>
-          <strong>Address:</strong> {walletState.address ?? "Not connected"}
-        </p>
-        <p style={{ margin: 0 }}>
-          <strong>Network:</strong> {formatNetworkDisplay(walletState.network)}
-        </p>
+        <p style={{ margin: 0 }}><strong>Status:</strong> {walletState.status}</p>
+        <p style={{ margin: 0 }}><strong>Address:</strong> {walletState.address ?? "Not connected"}</p>
+        <p style={{ margin: 0 }}><strong>Network:</strong> {formatNetworkDisplay(walletState.network)}</p>
         {!walletState.available ? (
-          <p style={{ margin: 0, color: "#8b2414" }}>
+          <p style={{ margin: 0, color: "#fca5a5" }}>
             Crossmark was not detected. Install the extension and connect a funded XRPL testnet wallet.
           </p>
         ) : null}
         {walletState.error ? (
-          <p style={{ margin: 0, color: "#8b2414" }}>
+          <p style={{ margin: 0, color: "#fca5a5" }}>
             <strong>Error:</strong> {walletState.error}
           </p>
         ) : null}
         {mintRequirementMessage ? (
-          <p style={{ margin: 0, color: "#8b2414", fontWeight: 600 }}>{mintRequirementMessage}</p>
+          <p style={{ margin: 0, color: "#fde047", fontWeight: 600 }}>{mintRequirementMessage}</p>
         ) : (
-          <p style={{ margin: 0, color: "#17331d", fontWeight: 600 }}>
+          <p style={{ margin: 0, color: "#86efac", fontWeight: 600 }}>
             Wallet connected on XRPL testnet. Minting is enabled.
           </p>
         )}
       </section>
 
-      <div
-        style={{
-          display: "grid",
-          gap: "1rem",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))"
-        }}
-      >
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
         <Field label="Title" name="title" placeholder="Campbell Biology" />
         <Field label="Author" name="author" placeholder="Lisa Urry" />
         <Field label="ISBN" name="isbn" placeholder="9780134093413" />
         <Field label="Course Code" name="course_code" placeholder="BSC2010" />
         <Field label="Edition" name="edition" placeholder="11th" />
         <Field label="Condition" name="condition" placeholder="used-good" />
-        <Field
-          label="Image URL"
-          name="image_url"
-          type="url"
-          required={false}
-          placeholder="https://example.com/textbook.jpg"
-        />
+        <Field label="Image URL" name="image_url" type="url" required={false} placeholder="https://example.com/textbook.jpg" />
       </div>
 
       {submitError ? (
-        <p
-          style={{
-            margin: 0,
-            padding: "0.85rem 1rem",
-            borderRadius: 12,
-            background: "#ffe7de",
-            color: "#7f2413"
-          }}
-        >
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {submitError}
         </p>
       ) : null}
 
       {pendingRegistrationHash ? (
-        <p
-          style={{
-            margin: 0,
-            padding: "0.85rem 1rem",
-            borderRadius: 12,
-            background: "#fff1d6",
-            color: "#6b4a00"
-          }}
-        >
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(234,179,8,0.12)", color: "#fde047" }}>
           A mint transaction was already signed and submitted. Submitting again will retry registration
           only with transaction hash {pendingRegistrationHash}.
         </p>

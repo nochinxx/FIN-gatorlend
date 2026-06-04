@@ -1,31 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { GatorLendLogo } from "@/components/GatorLendLogo";
+import { GatorChase } from "@/components/GatorChase";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { profileNeedsSetup } from "@/lib/auth/profile-schema";
-import {
-  ADVANCED_LAYER_LINE,
-  CURRENT_MVP_LINE,
-  LANDING_FEATURED_ITEMS,
-  LANDING_HERO_BODY,
-  LANDING_HERO_TITLE,
-  LANDING_HOW_IT_WORKS,
-  LANDING_ROADMAP,
-  LANDING_TOKENIZATION_POINTS,
-  LANDING_WHY_IT_MATTERS,
-  PILOT_DISCLAIMER
-} from "@/lib/marketing/publicContent";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
-
-const sectionLabelStyle = {
-  margin: 0,
-  textTransform: "uppercase" as const,
-  letterSpacing: "0.16em",
-  fontSize: 12,
-  color: "#5b5b5b"
-};
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerAuthClient();
@@ -39,285 +20,404 @@ export default async function HomePage() {
   }
 
   return (
-    <main style={{ padding: "0 1.5rem 5rem" }}>
-      <section
-        style={{
-          maxWidth: 1120,
-          margin: "0 auto",
-          padding: "5.5rem 0 4rem",
-          borderBottom: "1px solid #ebebeb"
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
-            gap: "2rem",
-            alignItems: "center"
-          }}
-        >
-          <div>
+    <>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes grain {
+          0%, 100% { transform: translate(0, 0); }
+          10%       { transform: translate(-2%, -3%); }
+          30%       { transform: translate(3%, 2%); }
+          50%       { transform: translate(-1%, 4%); }
+          70%       { transform: translate(2%, -2%); }
+          90%       { transform: translate(-3%, 1%); }
+        }
+        .hero-title  { animation: fadeUp 0.7s 0.05s cubic-bezier(0.16,1,0.3,1) both; }
+        .hero-body   { animation: fadeUp 0.7s 0.15s cubic-bezier(0.16,1,0.3,1) both; }
+        .hero-ctas   { animation: fadeUp 0.7s 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+        .hero-canvas { animation: fadeUp 0.9s 0.1s  cubic-bezier(0.16,1,0.3,1) both; }
+        .cta-primary {
+          transition: background 0.15s, box-shadow 0.2s, transform 0.15s;
+        }
+        .cta-primary:hover {
+          background: #22c55e !important;
+          box-shadow: 0 0 28px rgba(34,197,94,0.3);
+          transform: translateY(-1px);
+        }
+        .cta-secondary {
+          transition: border-color 0.15s, background 0.15s, transform 0.15s;
+        }
+        .cta-secondary:hover {
+          border-color: #333 !important;
+          background: #161616 !important;
+          transform: translateY(-1px);
+        }
+        .step-card {
+          transition: border-color 0.2s, background 0.2s, transform 0.2s;
+        }
+        .step-card:hover {
+          border-color: #222 !important;
+          background: #111 !important;
+          transform: translateY(-3px);
+        }
+        .stat-item {
+          transition: color 0.2s;
+        }
+        .stat-item:hover .stat-value {
+          color: #22c55e;
+        }
+        .grain-overlay {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.035;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-repeat: repeat;
+          background-size: 256px;
+          animation: grain 8s steps(1) infinite;
+        }
+      `}</style>
+
+      <main style={{ background: "#080808", color: "#e5e5e5", minHeight: "100vh" }}>
+
+        {/* ── Hero ── */}
+        <section style={{ position: "relative", overflow: "hidden" }}>
+          <div className="grain-overlay" />
+
+          {/* Radial glow */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(ellipse 60% 60% at 50% 80%, rgba(34,197,94,0.07) 0%, transparent 65%)",
+          }} />
+
+          {/* Centered copy */}
+          <div style={{
+            position: "relative",
+            maxWidth: 760,
+            margin: "0 auto",
+            padding: "6rem 1.5rem 4rem",
+            textAlign: "center",
+          }}>
+            <div className="hero-title" style={{ display: "flex", justifyContent: "center", marginBottom: "2.5rem" }}>
+              <GatorLendLogo height={40} />
+            </div>
+
             <h1
               style={{
-                margin: "0 0 1rem",
-                fontSize: "clamp(3rem, 7vw, 5rem)",
-                lineHeight: 0.96,
-                letterSpacing: "-0.05em"
+                margin: "0 0 1.5rem",
+                fontSize: "clamp(3rem, 7vw, 5.5rem)",
+                lineHeight: 0.92,
+                letterSpacing: "-0.045em",
+                fontWeight: 800,
+                color: "#f2f2f2",
               }}
             >
-              {LANDING_HERO_TITLE}
+              Buy and sell{" "}
+              <span style={{
+                background: "linear-gradient(95deg, #22c55e 0%, #86efac 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}>
+                assets
+              </span>
+              <br />
+              with Gators.
             </h1>
-            <p style={{ maxWidth: 620, margin: 0, fontSize: "1.08rem", lineHeight: 1.6, color: "#454545" }}>
-              {LANDING_HERO_BODY}
+
+            <p
+              className="hero-body"
+              style={{
+                margin: "0 auto 2.5rem",
+                fontSize: "1.1rem",
+                lineHeight: 1.7,
+                color: "#737373",
+                maxWidth: 500,
+              }}
+            >
+              Buy and sell textbooks, calculators, lab coats, and course
+              materials with verified Gators. No Craigslist risk.
+              No bookstore markup.
             </p>
-            <div style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap", marginTop: "2rem" }}>
+
+            <div
+              className="hero-ctas"
+              style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}
+            >
               <Link
                 href="/marketplace"
+                className="cta-primary"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0.9rem 1.2rem",
-                  borderRadius: 999,
-                  background: "#111111",
-                  color: "#ffffff",
+                  padding: "0.8rem 1.5rem",
+                  borderRadius: 8,
+                  background: "#16a34a",
+                  color: "#fff",
                   textDecoration: "none",
-                  fontWeight: 600
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  border: "1px solid #15803d",
+                  letterSpacing: "-0.01em",
                 }}
               >
-                Open Marketplace
+                Browse marketplace
               </Link>
               <Link
                 href="/listings/new"
+                className="cta-secondary"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0.9rem 1.2rem",
-                  borderRadius: 999,
-                  border: "1px solid #d7d7d7",
-                  color: "#111111",
+                  padding: "0.8rem 1.5rem",
+                  borderRadius: 8,
+                  border: "1px solid #1f1f1f",
+                  background: "#0e0e0e",
+                  color: "#a3a3a3",
                   textDecoration: "none",
-                  fontWeight: 600
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  letterSpacing: "-0.01em",
                 }}
               >
-                Create Listing
+                Sell something
               </Link>
             </div>
-            <div style={{ marginTop: "1.5rem", display: "grid", gap: "0.45rem", color: "#4e4e4e" }}>
-              <p style={{ margin: 0 }}><strong>{CURRENT_MVP_LINE}</strong></p>
-              <p style={{ margin: 0 }}><strong>{ADVANCED_LAYER_LINE}</strong></p>
-            </div>
-            <p style={{ margin: "1rem 0 0", fontSize: 14, color: "#555555", lineHeight: 1.6 }}>
-              {PILOT_DISCLAIMER}
+
+            <p style={{ margin: "1.75rem 0 0", fontSize: 12, color: "#3a3a3a", lineHeight: 1.6, letterSpacing: "0.01em" }}>
+              Requires an @sfsu.edu email &mdash; independent student project, not affiliated with SFSU or CSU.
             </p>
           </div>
 
+          {/* Full-width animation panel */}
           <div
+            className="hero-canvas"
             style={{
-              overflow: "hidden",
-              border: "1px solid #ebebeb",
-              borderRadius: 20,
-              background: "#fafafa"
+              position: "relative",
+              borderTop: "1px solid #141414",
+              background: "#0b0b0b",
             }}
           >
-            <Image
-              src="/branding/sfsu-library.jpg"
-              alt="Campus library environment"
-              width={1200}
-              height={900}
-              priority
-              style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", aspectRatio: "1.15 / 1" }}
-            />
+            <GatorChase width={1400} height={420} />
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section style={{ maxWidth: 1120, margin: "0 auto", padding: "4rem 0", borderBottom: "1px solid #ebebeb" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-          <div>
-            <p style={sectionLabelStyle}>Featured Items</p>
-            <h2 style={{ margin: "0.55rem 0 0", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Example categories</h2>
-          </div>
-          <p style={{ margin: 0, color: "#555555", maxWidth: 420 }}>
-            The first release focuses on simple academic items that are easy to understand, easy to verify visually, and useful for testing the request and handoff flow.
-          </p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-          {LANDING_FEATURED_ITEMS.map((item) => (
-            <article
-              key={item.name}
-              style={{
-                padding: "1rem",
-                border: "1px solid #ebebeb",
-                borderRadius: 18,
-                background: "#ffffff"
-              }}
-            >
+        {/* ── Divider stats ── */}
+        <section style={{ borderTop: "1px solid #111", borderBottom: "1px solid #111" }}>
+          <div style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "0 1.5rem",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          }}>
+            {[
+              { value: "$0",    label: "Platform fees" },
+              { value: "Free",  label: "To list" },
+              { value: "SFSU",  label: "Verified only" },
+              { value: "P2P",   label: "Direct trades" },
+            ].map((s) => (
               <div
+                key={s.label}
+                className="stat-item"
                 style={{
-                  overflow: "hidden",
-                  borderRadius: 14,
-                  border: "1px solid #efefef",
-                  background: "#f7f7f7",
-                  aspectRatio: "1.4 / 1",
-                  position: "relative",
-                  marginBottom: "1rem"
+                  padding: "1.75rem 1.5rem",
+                  borderRight: "1px solid #111",
                 }}
               >
-                <Image src={item.image} alt={item.name} fill sizes="(max-width: 768px) 100vw, 320px" style={{ objectFit: "cover" }} />
-              </div>
-              <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: "1rem" }}>
-                <div>
-                  <p style={{ margin: 0, color: "#6b6b6b", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    {item.context}
-                  </p>
-                  <h3 style={{ margin: "0.45rem 0 0", fontSize: "1.1rem" }}>{item.name}</h3>
-                </div>
-                <p style={{ margin: 0, fontWeight: 700 }}>{item.label}</p>
-              </div>
-              <div style={{ marginTop: "1.2rem", paddingTop: "1rem", borderTop: "1px solid #efefef" }}>
-                <p style={{ margin: 0, color: "#5a5a5a", fontSize: 13 }}>{item.recordLabel}</p>
-                <p style={{ margin: "0.3rem 0 0", fontFamily: 'ui-monospace, SFMono-Regular, monospace', fontSize: 14 }}>
-                  {item.recordId}
+                <p className="stat-value" style={{ margin: 0, fontSize: "1.75rem", fontWeight: 700, color: "#e5e5e5", letterSpacing: "-0.04em", transition: "color 0.2s" }}>
+                  {s.value}
                 </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 1120, margin: "0 auto", padding: "4rem 0", borderBottom: "1px solid #ebebeb" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <Image src="/branding/fin-globe-black.png" alt="FIN globe" width={20} height={20} />
-          <p style={sectionLabelStyle}>How it works</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", alignItems: "start" }}>
-          {LANDING_HOW_IT_WORKS.map((item, index) => (
-            <article
-              key={item.title}
-              style={{
-                padding: "1.5rem",
-                border: "1px solid #ebebeb",
-                borderRadius: 18,
-                background: "#ffffff"
-              }}
-            >
-              <p style={{ margin: 0, fontSize: 12, color: "#6b6b6b" }}>0{index + 1}</p>
-              <h2 style={{ margin: "0.5rem 0", fontSize: "1.25rem" }}>{item.title}</h2>
-              <p style={{ margin: 0, color: "#4a4a4a", lineHeight: 1.6 }}>{item.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 1120, margin: "0 auto", padding: "4rem 0", borderBottom: "1px solid #ebebeb" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
-            gap: "2rem",
-            alignItems: "start"
-          }}
-        >
-          <div>
-            <p style={sectionLabelStyle}>Why this matters</p>
-            <h2 style={{ margin: "0.55rem 0 0.8rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>Built to learn from real pilot usage</h2>
-          </div>
-          <div style={{ display: "grid", gap: "0.85rem" }}>
-            {LANDING_WHY_IT_MATTERS.map((item) => (
-              <div key={item} style={{ display: "flex", gap: "0.75rem", alignItems: "start" }}>
-                <span style={{ marginTop: 8, width: 6, height: 6, borderRadius: 999, background: "#111111", flexShrink: 0 }} />
-                <p style={{ margin: 0, color: "#434343", lineHeight: 1.6 }}>{item}</p>
+                <p style={{ margin: "0.25rem 0 0", fontSize: 12, color: "#3d3d3d", letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "ui-monospace, monospace" }}>
+                  {s.label}
+                </p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section style={{ maxWidth: 1120, margin: "0 auto", padding: "4rem 0", borderBottom: "1px solid #ebebeb" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-            gap: "2rem",
-            alignItems: "start"
-          }}
-        >
-          <div>
-            <p style={sectionLabelStyle}>Future of tokenization</p>
-            <h2 style={{ margin: "0.55rem 0 0.85rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>
-              Tokenization is an optional verification layer, not a first step.
-            </h2>
-            <p style={{ margin: 0, color: "#525252", lineHeight: 1.65 }}>
-              The marketplace flow works with school-email access and tracked ownership. For selected demo assets, the XRPL testnet flow can mint an XLS-20 NFT and compare on-chain state against marketplace metadata. This is used for learning, verification experiments, and technical demonstration.
+        {/* ── How it works ── */}
+        <section style={{ maxWidth: 1200, margin: "0 auto", padding: "6rem 1.5rem" }}>
+          <div style={{ marginBottom: "3.5rem" }}>
+            <p style={{
+              margin: "0 0 0.75rem",
+              fontSize: 11,
+              color: "#3a3a3a",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              fontFamily: "ui-monospace, monospace",
+            }}>
+              How it works
             </p>
+            <h2 style={{
+              margin: 0,
+              fontSize: "clamp(2rem, 4vw, 2.75rem)",
+              fontWeight: 700,
+              color: "#f0f0f0",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.1,
+            }}>
+              Three steps.<br />No friction.
+            </h2>
           </div>
-          <div style={{ display: "grid", gap: "1rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              {LANDING_TOKENIZATION_POINTS.map((item) => (
-                <article
-                  key={item}
-                  style={{
-                    padding: "1.15rem 1.25rem",
-                    border: "1px solid #ebebeb",
-                    borderRadius: 18,
-                    background: "#ffffff"
-                  }}
-                >
-                  <p style={{ margin: 0, lineHeight: 1.6 }}>{item}</p>
-                </article>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: "1px",
+            background: "#111",
+            borderRadius: 16,
+            overflow: "hidden",
+            border: "1px solid #111",
+          }}>
+            {[
+              {
+                num: "01",
+                title: "Sign in with @sfsu.edu",
+                desc: "Verify your school email to access the marketplace. No wallet or credit card required.",
+              },
+              {
+                num: "02",
+                title: "List or browse",
+                desc: "Post what you're selling with photos and price, or search by course code to find what you need.",
+              },
+              {
+                num: "03",
+                title: "Meet and trade",
+                desc: "Message the seller directly. Meet on campus and confirm the handoff. Done.",
+              },
+            ].map((step) => (
+              <div
+                key={step.num}
+                className="step-card"
+                style={{
+                  padding: "2.5rem 2rem",
+                  background: "#080808",
+                }}
+              >
+                <p style={{
+                  margin: "0 0 1.5rem",
+                  fontFamily: "ui-monospace, monospace",
+                  fontSize: 11,
+                  color: "#2a2a2a",
+                  letterSpacing: "0.15em",
+                }}>
+                  {step.num}
+                </p>
+                <h3 style={{ margin: "0 0 0.75rem", fontSize: "1.05rem", fontWeight: 600, color: "#e5e5e5", letterSpacing: "-0.02em" }}>
+                  {step.title}
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.88rem", color: "#525252", lineHeight: 1.7 }}>
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Summer callout ── */}
+        <section style={{ maxWidth: 1200, margin: "0 auto 6rem", padding: "0 1.5rem" }}>
+          <div style={{
+            borderRadius: 16,
+            border: "1px solid #141a14",
+            background: "#090d09",
+            padding: "3.5rem",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+            gap: "3rem",
+            alignItems: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(ellipse 50% 80% at 0% 50%, rgba(34,197,94,0.06) 0%, transparent 60%)",
+            }} />
+            <div style={{ position: "relative" }}>
+              <p style={{ margin: "0 0 0.75rem", fontSize: 11, color: "#2d5a2d", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "ui-monospace, monospace" }}>
+                Summer 2026
+              </p>
+              <h2 style={{ margin: "0 0 1rem", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 700, color: "#d4f7d4", letterSpacing: "-0.035em", lineHeight: 1.15 }}>
+                Selling before<br />you leave?
+              </h2>
+              <p style={{ margin: 0, color: "#3d6b3d", lineHeight: 1.7, fontSize: "0.9rem" }}>
+                Summer is when students move out and incoming Gators start prepping for fall.
+                List now — demand peaks in July before the semester starts.
+              </p>
+            </div>
+            <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+              {[
+                "List your end-of-semester books now",
+                "Incoming freshmen buy in July and August",
+                "Keep the money, skip the bookstore fee",
+              ].map((item) => (
+                <div key={item} style={{
+                  padding: "1rem 1.25rem",
+                  borderRadius: 10,
+                  border: "1px solid #1a2e1a",
+                  background: "rgba(34,197,94,0.03)",
+                  fontSize: "0.88rem",
+                  color: "#4a7a4a",
+                  lineHeight: 1.5,
+                }}>
+                  {item}
+                </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section style={{ maxWidth: 1120, margin: "0 auto", padding: "4rem 0 0" }}>
-        <div style={{ display: "grid", gap: "1.5rem" }}>
-          <div>
-            <p style={sectionLabelStyle}>Roadmap</p>
-            <h2 style={{ margin: "0.55rem 0 0.85rem", fontSize: "clamp(1.8rem, 4vw, 2.4rem)" }}>
-              Roadmap: learn first, expand carefully
-            </h2>
-            <p style={{ margin: 0, maxWidth: 680, color: "#555555", lineHeight: 1.6 }}>
-              The next steps focus on improving the request and handoff flow, then evaluating where optional tokenization is actually useful.
-            </p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "0.85rem", alignItems: "stretch", marginTop: "1.75rem" }}>
-            {LANDING_ROADMAP.map((item, index) => (
-              <div
-                key={item}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.85rem"
-                }}
-              >
-                <article
-                  style={{
-                    flex: 1,
-                    padding: "1rem 1.1rem",
-                    border: "1px solid #ebebeb",
-                    borderRadius: 16,
-                    background: "#ffffff"
-                  }}
-                >
-                  <p style={{ margin: 0, fontSize: 12, color: "#6a6a6a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    Step {index + 1}
-                  </p>
-                  <p style={{ margin: "0.35rem 0 0" }}>{item}</p>
-                </article>
-                {index < LANDING_ROADMAP.length - 1 ? (
-                  <span style={{ color: "#888888", fontSize: 22, lineHeight: 1 }} aria-hidden="true">
-                    →
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </main>
+        {/* ── Bottom CTA ── */}
+        <section style={{
+          borderTop: "1px solid #111",
+          padding: "5rem 1.5rem 6rem",
+          textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(ellipse 40% 60% at 50% 100%, rgba(34,197,94,0.06) 0%, transparent 70%)",
+          }} />
+          <h2 style={{
+            position: "relative",
+            margin: "0 0 1rem",
+            fontSize: "clamp(2rem, 4vw, 3rem)",
+            fontWeight: 700,
+            color: "#f0f0f0",
+            letterSpacing: "-0.04em",
+            lineHeight: 1.1,
+          }}>
+            Ready to trade?
+          </h2>
+          <p style={{ position: "relative", margin: "0 auto 2.5rem", maxWidth: 380, color: "#525252", lineHeight: 1.7, fontSize: "0.95rem" }}>
+            Sign in with your @sfsu.edu email and start browsing or listing in under a minute.
+          </p>
+          <Link
+            href="/marketplace"
+            className="cta-primary"
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0.9rem 2.25rem",
+              borderRadius: 8,
+              background: "#16a34a",
+              color: "#fff",
+              textDecoration: "none",
+              fontWeight: 600,
+              fontSize: "1rem",
+              border: "1px solid #15803d",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Open GatorLend
+          </Link>
+        </section>
+
+      </main>
+    </>
   );
 }

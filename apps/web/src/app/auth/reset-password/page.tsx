@@ -24,7 +24,7 @@ export default async function ResetPasswordPage() {
           Reset password
         </p>
         <h1 style={{ margin: 0, fontSize: "clamp(2rem, 5vw, 3rem)" }}>Set a new password</h1>
-        <p style={{ margin: 0, color: "#4f4f4f", lineHeight: 1.6 }}>
+        <p style={{ margin: 0, color: "#9a9a9a", lineHeight: 1.6 }}>
           Finish the Supabase recovery flow by choosing a new password for your account.
         </p>
       </div>
@@ -34,8 +34,8 @@ export default async function ResetPasswordPage() {
           marginTop: "2rem",
           padding: "1.5rem",
           borderRadius: 24,
-          border: "1px solid #ebebeb",
-          background: "#ffffff"
+          border: "1px solid #242424",
+          background: "#111111"
         }}
       >
         <ResetPasswordForm />

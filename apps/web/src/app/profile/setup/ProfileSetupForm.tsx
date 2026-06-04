@@ -21,6 +21,14 @@ const initialState: ProfileSetupState = {
   error: null
 };
 
+const inputStyle = {
+  padding: "0.9rem",
+  borderRadius: 12,
+  border: "1px solid #2a2a2a",
+  background: "#141414",
+  color: "#e5e5e5"
+} as const;
+
 export function ProfileSetupForm({
   email,
   defaultDisplayName,
@@ -42,8 +50,9 @@ export function ProfileSetupForm({
           style={{
             padding: "0.9rem",
             borderRadius: 12,
-            border: "1px solid #d7d7d7",
-            background: "#f5f5f5"
+            border: "1px solid #2a2a2a",
+            background: "#1e1e1e",
+            color: "#666666"
           }}
         />
       </label>
@@ -69,7 +78,7 @@ export function ProfileSetupForm({
               );
             }
           }}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
@@ -79,18 +88,13 @@ export function ProfileSetupForm({
           name="display_name"
           defaultValue={defaultDisplayName}
           placeholder="Optional display name"
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Major</span>
-        <input
-          name="major"
-          defaultValue={defaultMajor}
-          placeholder="Optional major"
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
-        />
+        <input name="major" defaultValue={defaultMajor} placeholder="Optional major" style={inputStyle} />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
@@ -99,17 +103,17 @@ export function ProfileSetupForm({
           name="student_type"
           defaultValue={defaultStudentType}
           placeholder="Optional student type"
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
-      <p style={{ margin: 0, color: "#5a5a5a", lineHeight: 1.5, fontSize: 14 }}>
+      <p style={{ margin: 0, color: "#9a9a9a", lineHeight: 1.5, fontSize: 14 }}>
         Usernames are public inside the marketplace. Use 3 to 24 lowercase letters, numbers, or
         underscores.
       </p>
 
       {state.error ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#fff3ef", color: "#7f2413" }}>
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {state.error}
         </p>
       ) : null}

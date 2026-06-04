@@ -73,11 +73,22 @@ export async function proxy(request: NextRequest) {
   });
 
   const {
-    data: { user }
+    data: { user },
+    error: authError
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return buildLoginRedirect(request);
+    if (authError) {
+      // Stale/invalid session — clear cookies locally so the browser stops
+      // re-sending them and triggering repeated refresh token errors.
+      await supabase.auth.signOut({ scope: "local" });
+    }
+    const loginRedirect = buildLoginRedirect(request);
+    // Propagate any cookie changes (e.g. session clearing) to the redirect.
+    for (const cookie of response.cookies.getAll()) {
+      loginRedirect.cookies.set(cookie);
+    }
+    return loginRedirect;
   }
 
   if (!isEmailVerified(user)) {

@@ -31,7 +31,7 @@ function isActivePath(pathname: string, href: string) {
 
 function navLinkStyle(active: boolean): CSSProperties {
   return {
-    color: active ? "#17331d" : "#111111",
+    color: active ? "#4ade80" : "#a3a3a3",
     textDecoration: "none",
     fontSize: 14,
     fontWeight: active ? 700 : 500
@@ -47,8 +47,8 @@ function mobileNavLinkStyle(active: boolean): CSSProperties {
     width: 40,
     height: 40,
     borderRadius: 12,
-    color: active ? "#17331d" : "#555555",
-    background: active ? "#eef6f0" : "transparent",
+    color: active ? "#4ade80" : "#525252",
+    background: active ? "rgba(74,222,128,0.08)" : "transparent",
     textDecoration: "none"
   };
 }
@@ -58,7 +58,7 @@ function menuItemStyle(): CSSProperties {
     display: "block",
     padding: "0.65rem 0.8rem",
     borderRadius: 12,
-    color: "#111111",
+    color: "#a3a3a3",
     textDecoration: "none",
     fontSize: 14,
     fontWeight: 500
@@ -151,7 +151,7 @@ export function AppNavShell({
 
         {showLogin ? (
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <Link href="/login" style={navLinkStyle(isActivePath(pathname, "/login"))}>
+            <Link href="/login" style={{ ...navLinkStyle(isActivePath(pathname, "/login")), color: "#a3a3a3" }}>
               Log in
             </Link>
             <Link
@@ -162,7 +162,7 @@ export function AppNavShell({
                 justifyContent: "center",
                 padding: "0.72rem 0.95rem",
                 borderRadius: 999,
-                background: "#111111",
+                background: "#16a34a",
                 color: "#ffffff",
                 textDecoration: "none",
                 fontSize: 14,
@@ -183,15 +183,15 @@ export function AppNavShell({
                 width: 42,
                 height: 42,
                 borderRadius: 14,
-                border: "1px solid #dddddd",
-                background: "#ffffff",
+                border: "1px solid #222",
+                background: "#111",
                 cursor: "pointer"
               }}
             >
               <span style={{ display: "grid", gap: 4 }}>
-                <span style={{ width: 18, height: 2, background: "#111111", borderRadius: 999 }} />
-                <span style={{ width: 18, height: 2, background: "#111111", borderRadius: 999 }} />
-                <span style={{ width: 18, height: 2, background: "#111111", borderRadius: 999 }} />
+                <span style={{ width: 18, height: 2, background: "#a3a3a3", borderRadius: 999 }} />
+                <span style={{ width: 18, height: 2, background: "#a3a3a3", borderRadius: 999 }} />
+                <span style={{ width: 18, height: 2, background: "#a3a3a3", borderRadius: 999 }} />
               </span>
             </summary>
             <div
@@ -202,23 +202,23 @@ export function AppNavShell({
                 minWidth: 240,
                 padding: "0.6rem",
                 borderRadius: 18,
-                border: "1px solid #e7e7e7",
-                background: "#ffffff",
-                boxShadow: "0 20px 45px rgba(17, 17, 17, 0.10)"
+                border: "1px solid #1a1a1a",
+                background: "#0e0e0e",
+                boxShadow: "0 20px 45px rgba(0,0,0,0.5)"
               }}
             >
               {identityLabel ? (
                 <div
                   style={{
                     padding: "0.6rem 0.8rem 0.8rem",
-                    borderBottom: "1px solid #efefef",
+                    borderBottom: "1px solid #1a1a1a",
                     marginBottom: "0.35rem",
                     fontSize: 14,
-                    color: "#4f4f4f",
+                    color: "#525252",
                     lineHeight: 1.5
                   }}
                 >
-                  Signed in as <strong style={{ color: "#111111" }}>{identityLabel}</strong>
+                  Signed in as <strong style={{ color: "#e5e5e5" }}>{identityLabel}</strong>
                 </div>
               ) : null}
 

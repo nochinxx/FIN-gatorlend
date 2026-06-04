@@ -22,8 +22,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
           margin: 0,
           fontFamily:
             'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          background: "#ffffff",
-          color: "#111111"
+          background: "#0a0a0a",
+          color: "#e5e5e5"
         }}
       >
         <AppHeader />
@@ -31,9 +31,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <FeedbackButton />
         <footer
           style={{
-            borderTop: "1px solid #ebebeb",
+            borderTop: "1px solid #141414",
             padding: "1.2rem 1.5rem 2rem",
-            color: "#5a5a5a"
+            color: "#404040"
           }}
         >
           <div style={{ maxWidth: 1120, margin: "0 auto", fontSize: 14, lineHeight: 1.6 }}>

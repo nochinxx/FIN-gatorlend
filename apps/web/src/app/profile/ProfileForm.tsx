@@ -21,6 +21,14 @@ const initialState: ProfileFormState = {
   success: null
 };
 
+const inputStyle = {
+  padding: "0.9rem",
+  borderRadius: 12,
+  border: "1px solid #2a2a2a",
+  background: "#141414",
+  color: "#e5e5e5"
+} as const;
+
 export function ProfileForm({
   email,
   username,
@@ -42,8 +50,9 @@ export function ProfileForm({
           style={{
             padding: "0.9rem",
             borderRadius: 12,
-            border: "1px solid #d7d7d7",
-            background: "#f5f5f5"
+            border: "1px solid #2a2a2a",
+            background: "#1e1e1e",
+            color: "#666666"
           }}
         />
       </label>
@@ -69,45 +78,28 @@ export function ProfileForm({
               );
             }
           }}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Display name</span>
-        <input
-          name="display_name"
-          defaultValue={displayName}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
-        />
+        <input name="display_name" defaultValue={displayName} style={inputStyle} />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Major</span>
-        <input
-          name="major"
-          defaultValue={major}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
-        />
+        <input name="major" defaultValue={major} style={inputStyle} />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Student type</span>
-        <input
-          name="student_type"
-          defaultValue={studentType}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
-        />
+        <input name="student_type" defaultValue={studentType} style={inputStyle} />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
         <span>Bio</span>
-        <textarea
-          name="bio"
-          rows={4}
-          defaultValue={bio}
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
-        />
+        <textarea name="bio" rows={4} defaultValue={bio} style={{ ...inputStyle, resize: "vertical" }} />
       </label>
 
       <label style={{ display: "grid", gap: "0.35rem" }}>
@@ -116,18 +108,18 @@ export function ProfileForm({
           name="wallet_address"
           defaultValue={walletAddress}
           placeholder="Optional XRPL wallet"
-          style={{ padding: "0.9rem", borderRadius: 12, border: "1px solid #d7d7d7" }}
+          style={inputStyle}
         />
       </label>
 
       {state.error ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#fff3ef", color: "#7f2413" }}>
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(239,68,68,0.12)", color: "#fca5a5" }}>
           {state.error}
         </p>
       ) : null}
 
       {state.success ? (
-        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "#edf7ef", color: "#1f5f30" }}>
+        <p style={{ margin: 0, padding: "0.85rem 1rem", borderRadius: 12, background: "rgba(34,197,94,0.12)", color: "#86efac" }}>
           {state.success}
         </p>
       ) : null}

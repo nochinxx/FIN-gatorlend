@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { BrandLogo } from "@/components/BrandLogo";
+import { GatorLendLogo } from "@/components/GatorLendLogo";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { profileNeedsSetup } from "@/lib/auth/profile-schema";
@@ -87,18 +87,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           maxWidth: 620,
           padding: "2rem",
           borderRadius: 24,
-          background: "#ffffff",
-          border: "1px solid #ebebeb",
-          boxShadow: "0 10px 40px rgba(17, 17, 17, 0.05)"
+          background: "#111111",
+          border: "1px solid #242424",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.3)"
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
-          <BrandLogo size="login" priority />
+          <GatorLendLogo height={44} />
         </div>
         <h1 style={{ margin: "0 0 0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
           Sign up or log in with your school email
         </h1>
-        <p style={{ lineHeight: 1.6, textAlign: "center", color: "#4f4f4f" }}>
+        <p style={{ lineHeight: 1.6, textAlign: "center", color: "#9a9a9a" }}>
           Access is limited to verified `@sfsu.edu` users, with separate tester accounts available
           for development. GatorLend is independent and not endorsed by SFSU or CSU.
         </p>
@@ -109,8 +109,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               margin: "1rem 0",
               padding: "0.85rem 1rem",
               borderRadius: 12,
-              background: "#fff3ef",
-              color: "#7f2413",
+              background: "rgba(239,68,68,0.12)",
+              color: "#fca5a5",
               fontWeight: 600,
               textAlign: "center"
             }}
