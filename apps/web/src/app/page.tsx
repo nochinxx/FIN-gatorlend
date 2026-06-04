@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { BrandLogo } from "@/components/BrandLogo";
+import { GatorLendLogo } from "@/components/GatorLendLogo";
 import { GatorChase } from "@/components/GatorChase";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
@@ -101,7 +101,7 @@ export default async function HomePage() {
             textAlign: "center",
           }}>
             <div className="hero-title" style={{ display: "flex", justifyContent: "center", marginBottom: "2.5rem" }}>
-              <BrandLogo size="login" variant="white" priority />
+              <GatorLendLogo height={40} />
             </div>
 
             <h1
@@ -121,7 +121,7 @@ export default async function HomePage() {
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
               }}>
-                textbooks
+                assets
               </span>
               <br />
               with Gators.

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { BrandLogo } from "@/components/BrandLogo";
+import { GatorLendLogo } from "@/components/GatorLendLogo";
 import { canAccessProtectedAppRoutes } from "@/lib/auth/access";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { profileNeedsSetup } from "@/lib/auth/profile-schema";
@@ -93,7 +93,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
-          <BrandLogo size="login" priority />
+          <GatorLendLogo height={44} />
         </div>
         <h1 style={{ margin: "0 0 0.5rem", fontSize: "clamp(2rem, 5vw, 3rem)", textAlign: "center" }}>
           Sign up or log in with your school email
